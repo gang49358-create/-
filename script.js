@@ -82,3 +82,67 @@ $("#menuToggle").addEventListener("click",()=>$(".nav").classList.toggle("open")
 $$(".nav a").forEach(a=>a.addEventListener("click",()=>$(".nav").classList.remove("open")));
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeCart();closeProduct();closeCheckout();$(".nav").classList.remove("open")}});
 renderProducts();renderCart();
+
+
+// Demo content for community, editorial news and browser-only admin panel.
+const defaultReviews=[
+ {id:101,name:"Артём",rating:5,text:"Очень стильная подача и удобный интерфейс. Визуально прям то, что нужно для streetwear.",date:"12.10.2026"},
+ {id:102,name:"Милана",rating:5,text:"Понравились синие акценты и подборка моделей. Хочется увидеть ещё больше новых дропов.",date:"08.10.2026"},
+ {id:103,name:"Даниил",rating:4,text:"Классная концепция магазина. Особенно понравилась возможность выбрать размер прямо в карточке.",date:"02.10.2026"}
+];
+const defaultNews=[
+ {id:201,date:"19 OCT 2026",tag:"NEW DROP",title:"Скоро: новая волна синего",text:"Вдохновение ночным городом, электрические оттенки и свежие силуэты. Следи за обновлениями Baze China.",symbol:"DROP 02"},
+ {id:202,date:"12 OCT 2026",tag:"BRAND NOTES",title:"Почему мы выбираем синий",text:"Синий — это движение, глубина и уверенность. Он стал визуальным кодом нашей концепции streetwear.",symbol:"BLUE"},
+ {id:203,date:"04 OCT 2026",tag:"COMMUNITY",title:"Твой стиль — твои правила",text:"Baze China задуман как пространство для тех, кто смешивает направления и создаёт собственные правила.",symbol:"MOVE"}
+];
+let reviews=JSON.parse(localStorage.getItem("bazeReviews")||"null")||defaultReviews;
+let newsItems=JSON.parse(localStorage.getItem("bazeNews")||"null")||defaultNews;
+let adminTab="products";
+function saveReviews(){localStorage.setItem("bazeReviews",JSON.stringify(reviews))}
+function saveNews(){localStorage.setItem("bazeNews",JSON.stringify(newsItems))}
+function renderReviews(){
+ const sorted=[...reviews].sort((a,b)=>b.id-a.id);
+ $("#reviewGrid").innerHTML=sorted.length?sorted.map(r=>`<article class="review-card"><div class="review-top"><span class="review-avatar">${escapeHtml(r.name.slice(0,1).toUpperCase())}</span><span class="review-name">${escapeHtml(r.name)}</span><span class="stars">${"★".repeat(r.rating)}${"☆".repeat(5-r.rating)}</span></div><p>${escapeHtml(r.text)}</p><span class="review-date">${escapeHtml(r.date||"СЕГОДНЯ")}</span></article>`).join(""):`<div class="admin-empty">Пока нет отзывов. Стань первым!</div>`;
+ const avg=reviews.length?reviews.reduce((s,r)=>s+r.rating,0)/reviews.length:0;
+ $(".review-score").innerHTML=`${avg.toFixed(1)}<span>/5</span>`;
+ $(".review-summary small").textContent=`${reviews.length} отзыв(ов) · демо-данные хранятся в этом браузере`;
+}
+function renderNews(){
+ $("#newsGrid").innerHTML=newsItems.length?newsItems.map(n=>`<article class="news-card"><div class="news-image"><span>${escapeHtml(n.symbol||"B/C")}</span></div><div class="news-body"><div class="news-meta">${escapeHtml(n.tag||"BAZE NEWS")} · ${escapeHtml(n.date||"НОВОСТЬ")}</div><h3>${escapeHtml(n.title)}</h3><p>${escapeHtml(n.text)}</p><button class="news-read" data-news-read="${n.id}">Читать заметку ↗</button></div></article>`).join(""):`<div class="admin-empty">Новостей пока нет.</div>`;
+}
+function escapeHtml(value){return String(value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
+function openReview(){ $("#reviewModal").classList.add("open");document.body.classList.add("locked")}
+function closeReview(){ $("#reviewModal").classList.remove("open");if(!$("#adminModal").classList.contains("open")&&!$("#checkoutModal").classList.contains("open")&&!$("#productModal").classList.contains("open"))document.body.classList.remove("locked")}
+function openAdmin(){ $("#adminModal").classList.add("open");document.body.classList.add("locked")}
+function closeAdmin(){ $("#adminModal").classList.remove("open");document.body.classList.remove("locked")}
+function adminTabButtons(){ $$(".admin-tab").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===adminTab))}
+function renderAdmin(){
+ adminTabButtons();const root=$("#adminPanelContent");
+ if(adminTab==="products"){
+  root.innerHTML=`<form class="admin-form" id="adminProductForm"><label>Название<input name="name" required placeholder="Название модели"></label><label>Цена, ₽<input name="price" type="number" min="1" required placeholder="7990"></label><label>Категория<select name="category"><option value="running">Running</option><option value="street">Streetwear</option><option value="classic">Classic</option></select></label><label>URL фото<input name="image" type="url" placeholder="https://..."></label><label class="wide">Описание<textarea name="desc" rows="2" required placeholder="Коротко о модели"></textarea></label><button class="button button-primary" type="submit">Добавить товар +</button></form><div class="admin-list">${products.map(p=>`<div class="admin-list-item"><img src="${p.image}" alt=""><div class="admin-item-copy"><strong>${escapeHtml(p.name)}</strong><small>${money(p.price)} · ${p.category}</small></div><button data-admin-delete-product="${p.id}">Удалить</button></div>`).join("")}</div><p class="admin-note">Изменения товаров доступны только до перезагрузки страницы. Для постоянного управления нужен сервер или отдельная база данных.</p>`;
+  $("#adminProductForm").addEventListener("submit",e=>{e.preventDefault();const d=new FormData(e.currentTarget);const name=d.get("name").trim();const image=d.get("image").trim()||"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=85";products.push({id:Math.max(...products.map(p=>p.id),0)+1,name,category:d.get("category"),type:d.get("category").toUpperCase()+" / CUSTOM",price:Number(d.get("price")),label:"NEW",desc:d.get("desc").trim(),image,sizes:[39,40,41,42,43,44,45]});renderProducts();renderAdmin();showToast("Товар добавлен в демо-каталог")});
+ }else if(adminTab==="news"){
+  root.innerHTML=`<form class="admin-form" id="adminNewsForm"><label>Заголовок<input name="title" required placeholder="Заголовок новости"></label><label>Категория<input name="tag" placeholder="BRAND NOTES" value="BAZE NEWS"></label><label class="wide">Текст<textarea name="text" required minlength="10" rows="3" placeholder="Текст новости"></textarea></label><button class="button button-primary" type="submit">Опубликовать новость +</button></form><div class="admin-list">${newsItems.map(n=>`<div class="admin-list-item"><div class="admin-item-copy"><strong>${escapeHtml(n.title)}</strong><small>${escapeHtml(n.tag||"BAZE NEWS")} · ${escapeHtml(n.date||"")}</small></div><button data-admin-delete-news="${n.id}">Удалить</button></div>`).join("")}</div>`;
+  $("#adminNewsForm").addEventListener("submit",e=>{e.preventDefault();const d=new FormData(e.currentTarget);newsItems.unshift({id:Date.now(),date:new Date().toLocaleDateString("ru-RU"),tag:d.get("tag").trim()||"BAZE NEWS",title:d.get("title").trim(),text:d.get("text").trim(),symbol:"B/C"});saveNews();renderNews();renderAdmin();showToast("Новость опубликована")});
+ }else{
+  root.innerHTML=`<div class="admin-list">${reviews.length?reviews.map(r=>`<div class="admin-list-item"><div class="admin-item-copy"><strong>${escapeHtml(r.name)} · ${"★".repeat(r.rating)}</strong><small>${escapeHtml(r.text)}</small></div><button data-admin-delete-review="${r.id}">Удалить</button></div>`).join(""):`<div class="admin-empty">Отзывы отсутствуют.</div>`}</div><p class="admin-note">Отзывы — демонстрационные. Удаление влияет только на данные этого браузера.</p>`;
+ }
+}
+$("#writeReview").addEventListener("click",openReview);
+$("#closeReview").addEventListener("click",closeReview);
+$("#reviewModal").addEventListener("click",e=>{if(e.target===$("#reviewModal"))closeReview()});
+$("#reviewForm").addEventListener("submit",e=>{e.preventDefault();const d=new FormData(e.currentTarget);reviews.unshift({id:Date.now(),name:d.get("reviewName").trim(),rating:Number(d.get("rating")),text:d.get("reviewText").trim(),date:new Date().toLocaleDateString("ru-RU")});saveReviews();renderReviews();e.currentTarget.reset();closeReview();showToast("Спасибо! Отзыв добавлен")});
+$("#closeAdmin").addEventListener("click",closeAdmin);
+$("#adminModal").addEventListener("click",e=>{if(e.target===$("#adminModal"))closeAdmin()});
+$("#adminLoginBtn").addEventListener("click",()=>{if($("#adminCode").value==="BAZE2026"){$("#adminLogin").hidden=true;$("#adminDashboard").hidden=false;adminTab="products";renderAdmin()}else showToast("Неверный демо-код")});
+$$('a[href="#admin"]').forEach(a=>a.addEventListener("click",e=>{e.preventDefault();openAdmin()}));
+$("#adminDashboard").addEventListener("click",e=>{
+ const tab=e.target.closest("[data-admin-tab]");if(tab){adminTab=tab.dataset.adminTab;renderAdmin();return}
+ const dp=e.target.closest("[data-admin-delete-product]");if(dp){const id=Number(dp.dataset.adminDeleteProduct);const ix=products.findIndex(p=>p.id===id);if(ix>=0)products.splice(ix,1);cart=cart.filter(c=>c.id!==id);saveCart();renderCart();renderProducts();renderAdmin();showToast("Товар удалён из демо-каталога");return}
+ const dn=e.target.closest("[data-admin-delete-news]");if(dn){newsItems=newsItems.filter(n=>n.id!==Number(dn.dataset.adminDeleteNews));saveNews();renderNews();renderAdmin();showToast("Новость удалена");return}
+ const dr=e.target.closest("[data-admin-delete-review]");if(dr){reviews=reviews.filter(r=>r.id!==Number(dr.dataset.adminDeleteReview));saveReviews();renderReviews();renderAdmin();showToast("Отзыв удалён")}
+});
+$("#newsGrid").addEventListener("click",e=>{const b=e.target.closest("[data-news-read]");if(!b)return;const n=newsItems.find(x=>x.id===Number(b.dataset.newsRead));if(n)showToast(n.title+" — "+n.text)});
+const oldEscapeHandler = null;
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeReview();closeAdmin()}});
+renderReviews();renderNews();

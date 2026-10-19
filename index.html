@@ -16,7 +16,7 @@
   <header class="header">
     <a class="brand" href="#" aria-label="Baze China — главная"><span class="brand-mark">B</span><span>BAZE<span class="brand-light"> CHINA</span></span></a>
     <nav class="nav" aria-label="Главная навигация">
-      <a href="#catalog">Каталог</a><a href="#story">О бренде</a><a href="#benefits">Преимущества</a>
+      <a href="#catalog">Каталог</a><a href="#story">О бренде</a><a href="#benefits">Преимущества</a><a href="#reviews">Отзывы</a><a href="#news">Новости</a><a href="#creators">Создатели</a>
     </nav>
     <div class="header-actions">
       <button class="icon-btn search-open" aria-label="Открыть поиск" title="Поиск">⌕</button>
@@ -80,6 +80,26 @@
       </div>
     </section>
 
+
+    <section class="reviews-section section" id="reviews">
+      <div class="section-head">
+        <div><div class="eyebrow"><span class="eyebrow-line"></span> COMMUNITY VOICES</div><h2>СЛОВО <span>ЗА ТОБОЙ.</span></h2></div>
+        <p>Отзывы сообщества о стиле, посадке<br>и ощущениях от своих пар.</p>
+      </div>
+      <div class="review-summary"><div class="review-score">4.9<span>/5</span></div><div><div class="stars">★★★★★</div><small>Демо-оценка для макета — замените реальными отзывами</small></div><button class="button button-primary" id="writeReview">Оставить отзыв <span>↗</span></button></div>
+      <div class="review-grid" id="reviewGrid"></div>
+    </section>
+
+    <section class="news-section section" id="news">
+      <div class="section-head"><div><div class="eyebrow"><span class="eyebrow-line"></span> LATEST FROM BAZE</div><h2>НОВОСТИ <span>ДВИЖЕНИЯ.</span></h2></div><p>Новые дропы, идеи и события<br>из мира Baze China.</p></div>
+      <div class="news-grid" id="newsGrid"></div>
+    </section>
+
+    <section class="creators-section" id="creators">
+      <div class="creators-art"><div class="creators-orbit"></div><div class="creators-logo">B<span>/</span>C</div><div class="creator-stamp">BUILT WITH<br>AMBITION ✳</div></div>
+      <div class="creators-copy"><div class="eyebrow"><span class="eyebrow-line"></span> BEHIND THE BRAND</div><h2>ИДЕЯ СОЗДАЁТ<br><span>ДВИЖЕНИЕ.</span></h2><p>Baze China — концепция streetwear-магазина, созданная вокруг городской культуры, выразительного дизайна и свободы самовыражения.</p><p>Мы хотим, чтобы каждая деталь — от силуэта кроссовок до интерфейса магазина — помогала тебе находить собственный стиль.</p><div class="creator-cards"><article><span>01 / CREATIVE</span><h3>Креативная команда</h3><p>Визуальный язык, коллекции и настроение бренда.</p></article><article><span>02 / DIGITAL</span><h3>Digital-команда</h3><p>Сайт, пользовательский опыт и технологии.</p></article></div><small class="creator-note">Это концептуальное описание команды. Добавьте реальные имена, фотографии и биографии создателей перед публикацией.</small></div>
+    </section>
+
     <section class="newsletter">
       <div><div class="eyebrow"><span class="eyebrow-line"></span> STAY IN MOTION</div><h2>БУДЬ ВНУТРИ<br><span>ДВИЖЕНИЯ.</span></h2><p>Новые дропы, свежие модели и новости Baze — без лишнего шума.</p></div>
       <form id="newsletterForm" class="newsletter-form"><label for="emailInput">ТВОЙ EMAIL</label><div class="email-row"><input id="emailInput" type="email" placeholder="you@example.com" required><button type="submit" aria-label="Подписаться">↗</button></div><small id="newsletterMessage">Подписываясь, ты соглашаешься получать новости магазина.</small></form>
@@ -87,7 +107,7 @@
     </section>
   </main>
 
-  <footer class="footer"><a class="brand" href="#"><span class="brand-mark">B</span><span>BAZE<span class="brand-light"> CHINA</span></span></a><span>MOVE DIFFERENT. © 2026 BAZE CHINA</span><div><a href="#catalog">Каталог</a><a href="#story">О бренде</a><a href="mailto:hello@baze-china.example">Связаться</a></div></footer>
+  <footer class="footer"><a class="brand" href="#"><span class="brand-mark">B</span><span>BAZE<span class="brand-light"> CHINA</span></span></a><span>MOVE DIFFERENT. © 2026 BAZE CHINA</span><div><a href="#catalog">Каталог</a><a href="#story">О бренде</a><a href="#creators">Создатели</a><a href="#admin">Админ-панель</a><a href="mailto:hello@baze-china.example">Связаться</a></div></footer>
 
   <div class="overlay" id="overlay"></div>
   <aside class="cart-drawer" id="cartDrawer" aria-label="Корзина" aria-hidden="true">
@@ -103,6 +123,20 @@
   <div class="modal-wrap" id="checkoutModal" role="dialog" aria-modal="true" aria-label="Оформление заказа">
     <div class="modal-card checkout-card"><button class="close-btn modal-close" id="closeCheckout" aria-label="Закрыть">×</button><div class="eyebrow"><span class="eyebrow-line"></span> CHECKOUT</div><h2>ОФОРМЛЕНИЕ <span>ЗАКАЗА.</span></h2><p class="checkout-intro">Заполни данные — мы покажем подтверждение заказа в демо-режиме.</p><form id="checkoutForm" class="checkout-form"><label>Имя и фамилия<input name="name" required minlength="2" placeholder="Александр Иванов"></label><label>Email<input name="email" type="email" required placeholder="you@example.com"></label><label>Адрес доставки<input name="address" required minlength="5" placeholder="Город, улица, дом"></label><label>Способ доставки<select name="delivery"><option>Курьер</option><option>Пункт выдачи</option></select></label><div class="checkout-total"><span>К оплате</span><strong id="checkoutTotal">0 ₽</strong></div><button class="button button-primary" type="submit">Подтвердить демо-заказ <span>↗</span></button><small>Это демонстрация интерфейса. Данные никуда не отправляются.</small></form><div id="orderSuccess" class="order-success" hidden><div class="success-mark">✓</div><h3>Заказ оформлен!</h3><p id="successText">Спасибо за выбор Baze China.</p><button class="button button-outline" id="finishOrder">Вернуться в магазин ↗</button></div></div>
   </div>
+
+  <div class="modal-wrap" id="reviewModal" role="dialog" aria-modal="true" aria-label="Оставить отзыв">
+    <div class="modal-card checkout-card"><button class="close-btn modal-close" id="closeReview" aria-label="Закрыть">×</button><div class="eyebrow"><span class="eyebrow-line"></span> YOUR VOICE</div><h2>ОСТАВЬ <span>ОТЗЫВ.</span></h2><form id="reviewForm" class="checkout-form"><label>Твоё имя<input name="reviewName" required minlength="2" placeholder="Как к тебе обращаться?"></label><label>Оценка<select name="rating"><option value="5">★★★★★ — Отлично</option><option value="4">★★★★☆ — Хорошо</option><option value="3">★★★☆☆ — Нормально</option><option value="2">★★☆☆☆ — Не очень</option><option value="1">★☆☆☆☆ — Плохо</option></select></label><label>Отзыв<textarea name="reviewText" required minlength="10" rows="4" placeholder="Поделись впечатлениями..."></textarea></label><button class="button button-primary" type="submit">Опубликовать отзыв <span>↗</span></button><small>Демо-режим: отзыв сохранится только в этом браузере.</small></form></div>
+  </div>
+  <div class="modal-wrap" id="adminModal" role="dialog" aria-modal="true" aria-label="Админ-панель">
+    <div class="modal-card admin-card"><button class="close-btn modal-close" id="closeAdmin" aria-label="Закрыть">×</button><div class="eyebrow"><span class="eyebrow-line"></span> BAZE CONTROL</div><h2>АДМИН <span>ПАНЕЛЬ.</span></h2><p class="admin-warning">Демо-панель работает только в этом браузере. Это не защищённая авторизация: не используйте её для управления настоящими заказами или персональными данными.</p>
+      <div class="admin-login" id="adminLogin"><label>Демо-код доступа<input id="adminCode" type="password" placeholder="Введите код"></label><button class="button button-primary" id="adminLoginBtn">Войти <span>↗</span></button><small>Код для демонстрации: <b>BAZE2026</b></small></div>
+      <div id="adminDashboard" hidden>
+        <div class="admin-tabs"><button class="admin-tab active" data-admin-tab="products">Товары</button><button class="admin-tab" data-admin-tab="news">Новости</button><button class="admin-tab" data-admin-tab="reviews">Отзывы</button></div>
+        <div id="adminPanelContent"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast" role="status"></div>
   <script src="script.js"></script>
 </body>
