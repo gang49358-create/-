@@ -136,7 +136,14 @@ $("#checkoutForm").addEventListener("submit",async e=>{
   });
   if(error)throw error;
   if(!orderId)throw new Error("База не вернула номер заказа");
-  $("#successText").textContent=`${String(data.get("name")).trim()}, спасибо! Заказ №${orderId} сохранён. Продавец сможет подтвердить его после проверки. Онлайн-оплаты пока нет.`;
+  const customerName=String(data.get("name")||"").trim();
+  const delivery=String(data.get("delivery")||"Курьер");
+  const orderLines=items.map(item=>{const p=products.find(x=>Number(x.id)===Number(item.product_id));return `• ${p?p.name:"Товар"} — размер EU ${item.size} × ${item.quantity}`;}).join("\n");
+  const telegramText=["Здравствуйте! Хочу подтвердить заказ Baze China.",`Номер заказа: №${orderId}`,`Имя: ${customerName}`,`Телефон: ${String(data.get("phone")||"").trim()}`,`Адрес: ${String(data.get("address")||"").trim()}`,`Доставка: ${delivery}`,"Состав заказа:",orderLines,`Сумма: ${money(cartTotal())}`,"Пожалуйста, подтвердите наличие и сроки доставки."].join("\n");
+  const encodedText=encodeURIComponent(telegramText);
+  $("#telegramDealbin").href=`https://t.me/dealbin?text=${encodedText}`;
+  $("#telegramKlacha").href=`https://t.me/klacha82?text=${encodedText}`;
+  $("#successText").textContent=`${customerName}, спасибо! Заказ №${orderId} сохранён. Чтобы продавец подтвердил его, открой Telegram и отправь готовое сообщение. Онлайн-оплаты пока нет.`;
   $("#checkoutForm").hidden=true;$("#orderSuccess").hidden=false;
   cart=[];saveCart();renderCart();form.reset();
  }catch(err){
@@ -148,6 +155,19 @@ $("#checkoutForm").addEventListener("submit",async e=>{
  }finally{submitButton.disabled=false;submitButton.innerHTML='Отправить заказ <span>↗</span>'}
 });
 $("#finishOrder").addEventListener("click",()=>{closeCheckout();$("#catalog").scrollIntoView({behavior:"smooth"})});
+const orderStatusLabels={new:"Новый — ожидает подтверждения",confirmed:"Подтверждён",shipped:"Отправлен",completed:"Завершён",cancelled:"Отменён"};
+$("#orderLookupForm").addEventListener("submit",async e=>{
+ e.preventDefault();const form=e.currentTarget;const result=$("#orderLookupResult");const data=new FormData(form);const orderId=Number(data.get("orderId"));const phone=String(data.get("phone")||"").trim();
+ result.hidden=false;result.className="order-lookup-result is-loading";result.textContent="Ищем заказ…";
+ try{
+  const {data:order,error}=await supabaseClient.rpc("get_store_order_status",{p_order_id:orderId,p_phone:phone});
+  if(error)throw error;
+  if(!order||!order.length){result.className="order-lookup-result is-error";result.textContent="Заказ не найден. Проверь номер заказа и телефон, указанный при оформлении.";return;}
+  const o=order[0];const status=orderStatusLabels[o.status]||o.status||"Статус уточняется";const created=o.created_at?new Date(o.created_at).toLocaleString("ru-RU"):"—";
+  const items=Array.isArray(o.items)?o.items.map(item=>`${item.product_name} — EU ${item.size} × ${item.quantity}`).join("; "):"Состав заказа недоступен";
+  result.className="order-lookup-result is-success";result.innerHTML=`<strong>Заказ №${Number(o.order_id)}</strong><span class="tracking-status">${escapeHtml(status)}</span><p>Создан: ${escapeHtml(created)}<br>Сумма: ${money(Number(o.total)||0)}<br>Состав: ${escapeHtml(items)}</p><small>Если статус долго не меняется, напиши продавцу в Telegram: <a href="https://t.me/dealbin" target="_blank" rel="noopener noreferrer">@dealbin</a> или <a href="https://t.me/klacha82" target="_blank" rel="noopener noreferrer">@klacha82</a>.</small>`;
+ }catch(err){console.error("Order status lookup failed:",err);result.className="order-lookup-result is-error";result.textContent="Не удалось проверить статус. Возможно, нужно выполнить SQL-файл для отслеживания заказов в Supabase.";}
+});
 $("#newsletterForm").addEventListener("submit",e=>{e.preventDefault();const email=$("#emailInput").value.trim();if(!email)return;$("#newsletterMessage").textContent="Спасибо! Подписка сохранена только в рамках этой демонстрации.";$("#newsletterMessage").style.color="#245bff";e.currentTarget.reset();showToast("Ты в списке Baze China ✳")});
 $("#menuToggle").addEventListener("click",()=>$(".nav").classList.toggle("open"));
 $$(".nav a").forEach(a=>a.addEventListener("click",()=>$(".nav").classList.remove("open")));
