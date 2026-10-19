@@ -27,7 +27,7 @@ function productToRow(p){
 async function refreshProductsFromDb(){
   const {data,error}=await supabaseClient.from("products").select("*").order("id",{ascending:true});
   if(error){console.error("Supabase products read failed:",error.message);showToast("Не удалось загрузить товары из базы");return false;}
-  productsLoadedFromDb=true;
+  productsLoadedFromDb=Boolean(data && data.length);
   if(data.length){products=data.map(mapProductRow);}
   else {products=fallbackProducts.map(p=>({...p,sizes:[...p.sizes]}));}
   // Remove cart entries for products that no longer exist in the active catalog.
@@ -116,7 +116,37 @@ $("#cartItems").addEventListener("click",e=>{
 $("#closeModal").addEventListener("click",closeProduct);$("#productModal").addEventListener("click",e=>{if(e.target===$("#productModal"))closeProduct()});
 $("#modalContent").addEventListener("click",e=>{const s=e.target.closest("[data-size-select]");if(s){selectedSize=Number(s.dataset.sizeSelect);$$(".size-option").forEach(b=>b.classList.toggle("selected",Number(b.dataset.sizeSelect)===selectedSize));return}if(e.target.closest("#modalAdd")){addToCart(currentProduct.id,selectedSize);closeProduct();openCart()}});
 $("#checkoutBtn").addEventListener("click",openCheckout);$("#closeCheckout").addEventListener("click",closeCheckout);$("#checkoutModal").addEventListener("click",e=>{if(e.target===$("#checkoutModal"))closeCheckout()});
-$("#checkoutForm").addEventListener("submit",e=>{e.preventDefault();if(!cart.length)return;const data=new FormData(e.currentTarget);const orderId="BC-"+Math.random().toString(36).slice(2,8).toUpperCase();$("#successText").textContent=`${data.get("name")}, спасибо! Номер демо-заказа ${orderId}. Подтверждение не отправляется, так как магазин работает в демонстрационном режиме.`;$("#checkoutForm").hidden=true;$("#orderSuccess").hidden=false;cart=[];saveCart();renderCart()});
+$("#checkoutForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ if(!cart.length){showToast("Корзина пуста");return}
+ if(!productsLoadedFromDb){showToast("Каталог ещё не загружен в базу. Попроси администратора войти в панель и проверить товары.");return}
+ const form=e.currentTarget;
+ const submitButton=form.querySelector('button[type="submit"]');
+ const data=new FormData(form);
+ const items=cart.map(item=>({product_id:Number(item.id),size:Number(item.size),quantity:Number(item.qty)}));
+ submitButton.disabled=true;submitButton.textContent="Сохраняем заказ…";
+ try{
+  const {data:orderId,error}=await supabaseClient.rpc("create_store_order",{
+   p_customer_name:String(data.get("name")||"").trim(),
+   p_phone:String(data.get("phone")||"").trim(),
+   p_address:String(data.get("address")||"").trim(),
+   p_items:items,
+   p_email:String(data.get("email")||"").trim()||null,
+   p_comment:"Способ доставки: "+String(data.get("delivery")||"Курьер")
+  });
+  if(error)throw error;
+  if(!orderId)throw new Error("База не вернула номер заказа");
+  $("#successText").textContent=`${String(data.get("name")).trim()}, спасибо! Заказ №${orderId} сохранён. Продавец сможет подтвердить его после проверки. Онлайн-оплаты пока нет.`;
+  $("#checkoutForm").hidden=true;$("#orderSuccess").hidden=false;
+  cart=[];saveCart();renderCart();form.reset();
+ }catch(err){
+  console.error("Order submission failed:",err);
+  const msg=String(err?.message||"");
+  if(msg.includes("Product not found"))showToast("Товары ещё не заведены в базе. Войди в админ-панель и проверь каталог.");
+  else if(msg.includes("Invalid product size"))showToast("Выбранный размер недоступен. Обнови каталог и попробуй снова.");
+  else showToast("Не удалось сохранить заказ. Проверь функцию create_store_order в Supabase.");
+ }finally{submitButton.disabled=false;submitButton.innerHTML='Отправить заказ <span>↗</span>'}
+});
 $("#finishOrder").addEventListener("click",()=>{closeCheckout();$("#catalog").scrollIntoView({behavior:"smooth"})});
 $("#newsletterForm").addEventListener("submit",e=>{e.preventDefault();const email=$("#emailInput").value.trim();if(!email)return;$("#newsletterMessage").textContent="Спасибо! Подписка сохранена только в рамках этой демонстрации.";$("#newsletterMessage").style.color="#245bff";e.currentTarget.reset();showToast("Ты в списке Baze China ✳")});
 $("#menuToggle").addEventListener("click",()=>$(".nav").classList.toggle("open"));
@@ -157,9 +187,27 @@ function closeReview(){ $("#reviewModal").classList.remove("open");if(!$("#admin
 function openAdmin(){ $("#adminModal").classList.add("open");document.body.classList.add("locked")}
 function closeAdmin(){ $("#adminModal").classList.remove("open");document.body.classList.remove("locked")}
 function adminTabButtons(){ $$(".admin-tab").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===adminTab))}
+async function loadAdminOrders(root){
+ root.innerHTML='<div class="admin-empty">Загружаем заказы…</div>';
+ const {data:orders,error}=await supabaseClient.from("orders").select("id,customer_name,phone,email,delivery_address,customer_comment,status,total,created_at").order("created_at",{ascending:false}).limit(100);
+ if(error){console.error("Orders read failed:",error);root.innerHTML='<div class="admin-empty">Не удалось загрузить заказы. Проверь RLS и права администратора.</div>';return}
+ if(!orders.length){root.innerHTML='<div class="admin-empty">Заказов пока нет. Новые заказы появятся здесь.</div>';return}
+ const ids=orders.map(o=>o.id);
+ const {data:items,error:itemError}=await supabaseClient.from("order_items").select("order_id,product_name,size,quantity,unit_price").in("order_id",ids);
+ if(itemError){console.error("Order items read failed:",itemError);root.innerHTML='<div class="admin-empty">Не удалось загрузить состав заказов. Проверь права доступа к order_items.</div>';return}
+ const byOrder={};for(const item of items||[]){(byOrder[item.order_id] ||= []).push(item)}
+ const statuses={new:"Новый",confirmed:"Подтверждён",shipped:"Отправлен",completed:"Завершён",cancelled:"Отменён"};
+ root.innerHTML=`<p class="admin-note">Последние ${orders.length} заказ(ов). Оплата на сайте не подключена; уточняй детали и оплату с покупателем отдельно.</p><div class="admin-list">${orders.map(o=>{
+  const orderItems=(byOrder[o.id]||[]).map(i=>`${escapeHtml(i.product_name)} · EU ${i.size} × ${i.quantity} (${money(Number(i.unit_price)*i.quantity)})`).join('<br>');
+  const created=new Date(o.created_at).toLocaleString('ru-RU');
+  return `<article class="admin-list-item order-admin-item"><div class="admin-item-copy"><strong>Заказ №${o.id} · ${money(Number(o.total))}</strong><small>${escapeHtml(created)} · ${escapeHtml(o.customer_name)} · ${escapeHtml(o.phone)}</small><small>${o.email?escapeHtml(o.email)+" · ":""}${escapeHtml(o.delivery_address)}</small><small>${escapeHtml(o.customer_comment||"")}</small><small>${orderItems||"Состав заказа недоступен"}</small><label class="order-status-label">Статус <select data-order-status="${o.id}">${Object.entries(statuses).map(([value,label])=>`<option value="${value}" ${o.status===value?"selected":""}>${label}</option>`).join("")}</select></label></div></article>`;
+ }).join("")}</div>`;
+}
 function renderAdmin(){
  adminTabButtons();const root=$("#adminPanelContent");
- if(adminTab==="products"){
+ if(adminTab==="orders"){
+  loadAdminOrders(root);
+ }else if(adminTab==="products"){
   root.innerHTML=`<form class="admin-form" id="adminProductForm"><label>Название<input name="name" required placeholder="Название модели"></label><label>Цена, ₽<input name="price" type="number" min="1" required placeholder="7990"></label><label>Категория<select name="category"><option value="running">Running</option><option value="street">Streetwear</option><option value="classic">Classic</option></select></label><label>URL фото<input name="image" type="url" placeholder="https://..."></label><label class="wide">Описание<textarea name="desc" rows="2" required placeholder="Коротко о модели"></textarea></label><button class="button button-primary" type="submit">Добавить товар +</button></form><div class="admin-list">${products.map(p=>`<div class="admin-list-item"><img src="${p.image}" alt=""><div class="admin-item-copy"><strong>${escapeHtml(p.name)}</strong><small>${money(p.price)} · ${p.category}</small></div><button data-admin-delete-product="${p.id}">Удалить</button></div>`).join("")}</div><p class="admin-note">Товары сохраняются в Supabase. Новости и отзывы пока остаются в демо-режиме этого браузера.</p>`;
   $("#adminProductForm").addEventListener("submit",async e=>{e.preventDefault();if(!isAdmin){showToast("Сначала войди как администратор");return}const d=new FormData(e.currentTarget);const category=d.get("category");const product={name:d.get("name").trim(),category,type:category.toUpperCase()+" / CUSTOM",price:Number(d.get("price")),oldPrice:null,label:"NEW",desc:d.get("desc").trim(),image:d.get("image").trim()||"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=85",sizes:[39,40,41,42,43,44,45]};const {error}=await supabaseClient.from("products").insert(productToRow(product));if(error){console.error(error);showToast("Не удалось сохранить товар. Проверь политики Supabase");return}await refreshProductsFromDb();renderAdmin();e.currentTarget.reset();showToast("Товар сохранён в Supabase")});
  }else if(adminTab==="news"){
@@ -192,6 +240,15 @@ async function loginAdmin(){
 $("#adminLoginBtn").addEventListener("click",loginAdmin);
 $("#adminPassword").addEventListener("keydown",e=>{if(e.key==="Enter")loginAdmin()});
 $$('a[href="#admin"]').forEach(a=>a.addEventListener("click",e=>{e.preventDefault();openAdmin()}));
+$("#adminDashboard").addEventListener("change",async e=>{
+ const statusSelect=e.target.closest("[data-order-status]");if(!statusSelect)return;
+ if(!isAdmin){showToast("Нет прав администратора");return}
+ const orderId=Number(statusSelect.dataset.orderStatus);const status=statusSelect.value;
+ statusSelect.disabled=true;
+ const {error}=await supabaseClient.from("orders").update({status}).eq("id",orderId);
+ if(error){console.error("Order status update failed:",error);showToast("Не удалось изменить статус заказа");statusSelect.disabled=false;return}
+ showToast("Статус заказа обновлён");statusSelect.disabled=false;
+});
 $("#adminDashboard").addEventListener("click",e=>{
  const tab=e.target.closest("[data-admin-tab]");if(tab){adminTab=tab.dataset.adminTab;renderAdmin();return}
  const dp=e.target.closest("[data-admin-delete-product]");if(dp){(async()=>{const id=Number(dp.dataset.adminDeleteProduct);if(!isAdmin){showToast("Нет прав администратора");return}const {error}=await supabaseClient.from("products").delete().eq("id",id);if(error){console.error(error);showToast("Не удалось удалить товар");return}await refreshProductsFromDb();renderAdmin();showToast("Товар удалён из Supabase")})();return}
