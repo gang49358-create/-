@@ -1,169 +1,109 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#050711">
-<title>B-Sneakers — Твой стиль. Твоя история.</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#050711;--panel:#0b1020;--panel2:#0e1528;--line:#202a45;--text:#f4f6ff;--muted:#91a0c4;--purple:#792cff;--pink:#e23dff;--cyan:#28d9ff;--green:#39e7a5;--font:'Manrope',sans-serif;--display:'Orbitron',sans-serif}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;scroll-padding-top:90px}
-body{font-family:var(--font);background:radial-gradient(ellipse at 48% -20%,#172052 0,transparent 50%),var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
-body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:.16;background-image:linear-gradient(#1c2b501c 1px,transparent 1px),linear-gradient(90deg,#1c2b501c 1px,transparent 1px);background-size:42px 42px}
-button,input,select,textarea{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
-::selection{background:var(--purple);color:#fff}.hidden{display:none!important}
-.loader{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:#04050b;transition:opacity .55s,visibility .55s}.loader.done{opacity:0;visibility:hidden;pointer-events:none}.loader-inner{text-align:center}.loader-mark{font-family:var(--display);font-size:64px;color:white;text-shadow:0 0 15px var(--purple),0 0 35px var(--pink);animation:pulse 1s infinite alternate}.loader-caption{font-size:10px;letter-spacing:5px;color:var(--cyan);margin-top:8px}.loadbar{width:190px;height:3px;background:#1b2340;margin:22px auto;overflow:hidden}.loadbar span{display:block;width:40%;height:100%;background:linear-gradient(90deg,var(--purple),var(--cyan));animation:load 1s infinite}
-.cursor-b{position:fixed;left:0;top:0;width:35px;height:35px;z-index:9998;pointer-events:none;display:grid;place-items:center;border:1px solid #b36aff;border-radius:50%;font-family:var(--display);font-weight:800;font-size:18px;color:#fff;background:#742cff24;text-shadow:0 0 12px var(--pink);box-shadow:0 0 18px #8e39ff88,inset 0 0 12px #8e39ff44;transform:translate(-50%,-50%);transition:width .2s,height .2s,background .2s;animation:cursorGlow 2s infinite alternate}.cursor-b.hover{width:49px;height:49px;background:#a02cff42}
-.app{max-width:1600px;margin:auto;padding:0 24px}
-.topbar{height:68px;display:flex;align-items:center;gap:30px;border-bottom:1px solid #18213b;position:sticky;top:0;z-index:50;background:#050711e8;backdrop-filter:blur(18px)}
-.brand{display:flex;align-items:center;gap:10px;font-weight:800;white-space:nowrap}.brand-b{font-family:var(--display);font-size:32px;color:white;text-shadow:0 0 12px var(--purple),0 0 25px var(--pink)}.brand-name{font-size:16px}.brand-name span{color:var(--cyan)}
-.nav{display:flex;align-items:center;gap:23px;margin-right:auto}.nav a{font-size:12px;color:#c3cce5;transition:.2s}.nav a:hover,.nav a.active{color:white;text-shadow:0 0 12px var(--pink)}
-.top-search{width:min(300px,25vw);position:relative}.top-search input{width:100%;background:#070b17;border:1px solid #1b2947;border-radius:22px;padding:11px 15px 11px 38px;color:white;font-size:11px}.top-search:before{content:"⌕";position:absolute;left:14px;top:5px;font-size:24px;color:#8ca0ce}
-.top-actions{display:flex;align-items:center;gap:10px}.round-btn{width:34px;height:34px;border:1px solid #263354;border-radius:50%;background:#0b1020;color:white;position:relative}.round-btn:hover{border-color:var(--pink);box-shadow:0 0 15px #7e2aff66}.count-dot{position:absolute;right:-3px;top:-3px;width:15px;height:15px;border-radius:50%;display:grid;place-items:center;font-size:9px;background:var(--pink);color:white}.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#4920b9,#16b7d9);display:grid;place-items:center;border:1px solid #7655d9;font-size:13px}
-.layout{display:grid;grid-template-columns:198px minmax(0,1fr) 235px;gap:16px;padding-top:15px}.side-panel,.panel{background:linear-gradient(145deg,#0a1020ed,#080c18ed);border:1px solid #192543;border-radius:14px;overflow:hidden}
-.sidebar{padding:12px;height:max-content;position:sticky;top:82px}.side-link{display:flex;align-items:center;gap:12px;padding:12px 11px;border-radius:8px;color:#c5cce0;font-size:12px;transition:.2s}.side-link span:first-child{width:19px;text-align:center;font-size:15px}.side-link:hover,.side-link.active{background:linear-gradient(90deg,#5320b5,#27165d);color:#fff;box-shadow:inset 2px 0 var(--pink)}.side-title{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#7181a7;padding:18px 10px 9px;border-top:1px solid #1b2742;margin-top:10px}.brand-list{display:grid;gap:2px}.brand-row{display:flex;align-items:center;gap:10px;padding:8px 10px;color:#aeb9d5;font-size:11px}.brand-logo{font-family:var(--display);font-weight:800;font-size:12px;width:22px;color:white}.team-card{margin-top:18px;border:1px solid #28345a;border-radius:10px;padding:15px 10px;text-align:center;background:radial-gradient(circle at 50% 0,#3c187f55,transparent 70%)}.team-icon{font-size:29px;text-shadow:0 0 20px var(--pink)}.team-card h4{font-size:11px;margin:9px 0 6px}.team-card p{font-size:10px;color:var(--muted);line-height:1.6}.btn{border:0;border-radius:9px;background:linear-gradient(100deg,#6228f5,#942cff);color:white;font-size:11px;font-weight:800;padding:11px 15px;box-shadow:0 4px 20px #7128ff30;transition:transform .2s,box-shadow .2s}.btn:hover{transform:translateY(-2px);box-shadow:0 7px 24px #7128ff66}.btn.secondary{background:#111a30;border:1px solid #2a385a;box-shadow:none}.btn.small{padding:8px 10px;font-size:10px}.team-card .btn{width:100%;margin-top:13px}
-.main-col{min-width:0}.hero{position:relative;min-height:285px;overflow:hidden;border:1px solid #5424a9;border-radius:14px;background:radial-gradient(ellipse at 75% 50%,#5318a6 0,transparent 43%),linear-gradient(110deg,#070914 0%,#10133a 50%,#070914 100%);display:flex;align-items:center;padding:30px 36px;margin-bottom:14px}.hero:before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,#8d30ff1a 35.2%,transparent 36%),linear-gradient(130deg,transparent 65%,#27d9ff19 65.2%,transparent 66%);pointer-events:none}.hero-copy{position:relative;z-index:2;max-width:55%}.eyebrow{color:var(--cyan);font-size:9px;letter-spacing:3px;font-weight:800;margin-bottom:10px}.hero h1{font-family:var(--display);font-size:clamp(27px,3.2vw,48px);line-height:1.12;letter-spacing:-1.5px;text-shadow:0 0 25px #a02fff75}.hero h1 span{display:block;color:#d3a6ff;font-style:italic}.hero p{max-width:340px;color:#b8c4e6;font-size:11px;line-height:1.7;margin:14px 0 18px}.hero-visual{position:absolute;right:1%;top:50%;transform:translateY(-50%);width:47%;height:94%;display:grid;place-items:center}.shoe-glow{position:absolute;width:230px;height:230px;border-radius:50%;background:#6526ff5c;filter:blur(38px);animation:float 4s ease-in-out infinite}.shoe-art{position:relative;z-index:1;width:100%;font-size:clamp(100px,15vw,190px);text-align:center;filter:drop-shadow(0 12px 25px #7d3aff99);transform:rotate(-19deg);animation:shoeFloat 5s ease-in-out infinite}.hero-sticker{position:absolute;right:15px;bottom:28px;border:1px solid #a64cff;border-radius:50%;width:62px;height:62px;display:grid;place-items:center;text-align:center;font-family:var(--display);font-size:9px;line-height:1.5;transform:rotate(12deg);background:#140a2a99}
-.brand-strip{display:flex;justify-content:space-around;align-items:center;gap:14px;min-height:65px;margin-bottom:20px;padding:12px;border:1px solid #1c2946;border-radius:12px;background:#080d1a}.brand-strip span{font-family:var(--display);font-weight:800;font-size:clamp(10px,1.3vw,18px);color:#f3f5ff;opacity:.9}.brand-strip span:nth-child(2){font-size:24px}.brand-strip span:nth-child(4){font-style:italic}
-.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:20px 2px 13px}.section-head h2{font-size:16px;font-weight:800}.section-head h2 span{color:var(--pink)}.section-head button{background:none;border:0;color:#b66bff;font-size:10px}
-.filters{display:flex;gap:7px;flex-wrap:wrap;margin:0 2px 14px}.filter{border:1px solid #253252;background:#0b1121;color:#aab7d6;border-radius:20px;padding:7px 12px;font-size:10px}.filter.active,.filter:hover{background:#6729e9;border-color:#8f56ff;color:white}
-.products{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}.product{min-width:0;background:linear-gradient(150deg,#0c1426,#080d19);border:1px solid #1a2742;border-radius:12px;padding:9px;transition:transform .25s,border-color .25s,box-shadow .25s;animation:cardIn .5s both}.product:hover{transform:translateY(-5px);border-color:#713dce;box-shadow:0 10px 25px #391b7b33}.product-visual{height:125px;border-radius:8px;background:radial-gradient(ellipse at 50% 70%,#28385c,#0b1120 70%);position:relative;display:grid;place-items:center;overflow:hidden}.product-visual:after{content:"";position:absolute;width:90%;height:1px;bottom:23px;background:linear-gradient(90deg,transparent,#7d50ff,transparent);box-shadow:0 0 15px #7b42ff}.product-emoji{font-size:70px;filter:drop-shadow(0 9px 9px #000b);transform:rotate(-18deg);transition:transform .35s}.product:hover .product-emoji{transform:rotate(-10deg) scale(1.12)}.heart{position:absolute;top:7px;right:7px;border:0;background:#080c19a8;color:#dce5ff;border-radius:50%;width:25px;height:25px;font-size:15px;z-index:2}.heart.liked{color:#ff55d8}.tag{position:absolute;left:7px;top:7px;font-size:8px;padding:5px 6px;border-radius:4px;background:#722cff;color:white;z-index:2}.product h3{font-size:10px;line-height:1.5;margin:10px 0 3px;min-height:30px}.product .subtitle{font-size:9px;color:#8190b3;min-height:13px}.price-row{display:flex;justify-content:space-between;align-items:center;gap:4px;margin:10px 0}.price{font-size:13px;font-weight:800;white-space:nowrap}.old-price{font-size:9px;color:#657292;text-decoration:line-through}.product .btn{width:100%;padding:9px 4px;font-size:9px}
-.friend-banner{display:grid;grid-template-columns:1fr 145px;gap:10px;align-items:center;margin-top:20px;padding:19px;border:1px solid #27305c;border-radius:13px;background:radial-gradient(ellipse at 85% 40%,#5d1c9a88,transparent 50%),linear-gradient(120deg,#0d1530,#080c1a)}.friend-banner h2{font-size:17px;margin-bottom:7px}.friend-banner p{font-size:10px;color:#aeb9d5;line-height:1.7;margin-bottom:12px;max-width:370px}.friend-people{font-size:42px;letter-spacing:-12px;white-space:nowrap;filter:drop-shadow(0 0 10px #8b34ff)}
-.new-products{margin-top:20px}.mini-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.mini-product{border:1px solid #1b2843;border-radius:9px;padding:8px;background:#0a1020;min-width:0}.mini-art{height:65px;display:grid;place-items:center;background:#10192c;border-radius:6px;font-size:36px}.mini-product h4{font-size:9px;line-height:1.4;margin:7px 0;min-height:25px}.mini-product p{font-size:10px;color:#d9e2ff;font-weight:700}
-.right-col{display:grid;align-content:start;gap:15px}.right-panel{padding:14px}.right-title{display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:800;margin-bottom:12px}.right-title button{border:0;background:none;color:#bd68ff;font-size:9px}.online-list{display:grid;gap:12px}.user-row{display:flex;align-items:center;gap:9px;min-width:0}.user-avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;background:linear-gradient(140deg,#34446e,#5d2a9e);border:1px solid #596a9c;font-size:14px}.user-info{min-width:0;flex:1}.user-info strong{display:block;font-size:10px;font-weight:700}.user-info small{display:block;font-size:9px;color:var(--green);margin-top:3px}.message-preview{font-size:9px;color:#8d9bbd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:4px}.divider{height:1px;background:#1b2842;margin:13px 0}.leader-score{font-size:9px;color:var(--cyan);margin-top:3px}.leader-rank{color:#ffd66d;font-size:13px}
-.admin-summary{border-color:#5824a0;background:linear-gradient(140deg,#140e2a,#090e1b)}.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{border:1px solid #283254;border-radius:8px;padding:10px}.stat small{font-size:8px;color:#93a1c2}.stat strong{display:block;font-family:var(--display);font-size:16px;margin:5px 0}.stat em{font-size:9px;color:var(--green);font-style:normal}
-.footer{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:22px 4px 28px;color:#7483a5;font-size:9px}.footer strong{color:#bd6cff;font-family:var(--display)}
-/* overlays and controls */
-.overlay{position:fixed;inset:0;z-index:100;background:#02040ac9;opacity:0;visibility:hidden;transition:.25s}.overlay.show{opacity:1;visibility:visible}.drawer{position:fixed;z-index:101;right:0;top:0;height:100dvh;width:min(430px,100%);padding:22px;background:#080d19;border-left:1px solid #40236d;transform:translateX(105%);transition:transform .3s;display:flex;flex-direction:column}.drawer.open{transform:translateX(0)}.drawer-head{display:flex;justify-content:space-between;align-items:center;padding-bottom:17px;border-bottom:1px solid #26304c}.drawer-head h2,.modal-head h2{font-family:var(--display);font-size:16px}.x-btn{background:none;border:0;color:white;font-size:27px}.cart-list{flex:1;overflow:auto;padding:12px 0}.cart-row{display:grid;grid-template-columns:60px 1fr auto;gap:10px;padding:12px 0;border-bottom:1px solid #1d2944}.cart-art{height:62px;border-radius:7px;background:#111a2d;display:grid;place-items:center;font-size:34px}.cart-row h4{font-size:11px;margin:5px 0}.cart-row p{font-size:11px;color:#c5d2ef}.qty{display:flex;align-items:center;gap:8px;margin-top:8px}.qty button{width:23px;height:23px;background:#151d33;border:1px solid #303d5f;color:white;border-radius:5px}.remove{border:0;background:none;color:#ff66bc;font-size:18px}.cart-bottom{padding-top:15px;border-top:1px solid #26304c}.total{display:flex;justify-content:space-between;margin-bottom:14px;font-size:13px}.total strong{font-family:var(--display);font-size:18px}.cart-bottom .btn{width:100%}.fineprint{font-size:9px;color:#7888ad;line-height:1.6;text-align:center;margin-top:10px}
-.modal{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:18px;background:#02040ad9;opacity:0;visibility:hidden;transition:.25s}.modal.open{opacity:1;visibility:visible}.modal-card{width:min(720px,100%);max-height:90dvh;overflow:auto;border:1px solid #5b2ab1;border-radius:14px;background:#090e1c;box-shadow:0 0 55px #5b22a533;padding:20px}.modal-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #25304c;padding-bottom:15px;margin-bottom:16px}.admin-note{font-size:10px;line-height:1.7;color:#ffda8a;padding:10px;background:#33230d;border:1px solid #664416;border-radius:7px;margin-bottom:16px}.admin-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:grid;gap:6px;font-size:10px;color:#b9c5e3}.field.full{grid-column:1/-1}.field input,.field select,.field textarea{width:100%;background:#070b16;border:1px solid #273454;color:white;border-radius:7px;padding:10px;font-size:11px}.field textarea{min-height:65px;resize:vertical}.admin-list{margin-top:20px}.admin-product-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid #202b47}.admin-product-row strong{font-size:11px}.admin-product-row small{display:block;color:#8292b7;font-size:9px;margin-top:4px}.admin-actions{display:flex;gap:6px}.admin-actions button{font-size:9px;padding:7px 8px;border-radius:5px;border:1px solid #334063;background:#111a30;color:white}.admin-actions .delete{color:#ff7ebc}.toast{position:fixed;z-index:200;bottom:24px;left:50%;transform:translate(-50%,20px);background:#111a30;border:1px solid #6637b6;color:white;padding:12px 17px;border-radius:9px;font-size:11px;opacity:0;visibility:hidden;transition:.25s;box-shadow:0 10px 35px #0008;max-width:90vw}.toast.show{opacity:1;visibility:visible;transform:translate(-50%,0)}
-@keyframes load{from{transform:translateX(-120%)}to{transform:translateX(300%)}}@keyframes pulse{to{text-shadow:0 0 22px var(--purple),0 0 48px var(--pink);transform:scale(1.04)}}@keyframes cursorGlow{to{box-shadow:0 0 26px #c53cffcc,inset 0 0 16px #8e39ff77}}@keyframes float{50%{transform:scale(1.13);opacity:.8}}@keyframes shoeFloat{0%,100%{transform:rotate(-19deg) translateY(0)}50%{transform:rotate(-15deg) translateY(-11px)}}@keyframes cardIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-@media(max-width:1180px){.layout{grid-template-columns:175px minmax(0,1fr)}.right-col{grid-column:2;grid-template-columns:repeat(2,minmax(0,1fr))}.admin-summary{grid-column:1/-1}.products{grid-template-columns:repeat(3,minmax(0,1fr))}.right-col .right-panel{height:max-content}}
-@media(max-width:850px){.app{padding:0 12px}.topbar{gap:13px}.nav{gap:12px}.nav a{font-size:10px}.top-search{width:190px}.layout{grid-template-columns:1fr}.sidebar{position:static;display:flex;overflow:auto;gap:5px;padding:7px}.sidebar .side-link{white-space:nowrap;padding:9px}.sidebar .side-title,.brand-list,.team-card{display:none}.right-col{grid-column:1;grid-template-columns:repeat(2,minmax(0,1fr))}.hero{min-height:260px}.products{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media(max-width:620px){.topbar{height:60px;gap:9px}.brand-name{display:none}.brand-b{font-size:28px}.nav{display:none}.top-search{flex:1;width:auto}.top-search input{font-size:10px}.top-actions{gap:5px}.top-actions .avatar{display:none}.hero{padding:23px 18px;min-height:290px}.hero-copy{max-width:70%}.hero h1{font-size:25px}.hero p{font-size:10px}.hero-visual{right:-13%;width:52%;opacity:.8}.shoe-art{font-size:100px}.hero-sticker{width:48px;height:48px;font-size:7px}.brand-strip{gap:9px;min-height:55px}.brand-strip span{font-size:9px}.products{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.product-visual{height:135px}.product-emoji{font-size:74px}.right-col{grid-template-columns:1fr}.friend-banner{grid-template-columns:1fr 90px;padding:14px}.friend-banner h2{font-size:15px}.friend-people{font-size:29px;letter-spacing:-9px}.mini-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.mini-product:nth-child(n+4){display:none}.footer{flex-direction:column;align-items:flex-start}.admin-form{grid-template-columns:1fr}.field.full{grid-column:auto}.cursor-b{display:none}}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07152f">
+  <meta name="description" content="Baze China — кроссовки и streetwear в синей эстетике. Найди свою пару.">
+  <title>Baze China — Sneaker Store</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="loader" id="loader"><div class="loader-inner"><div class="loader-mark">B</div><div class="loader-caption">SNEAKER CULTURE</div><div class="loadbar"><span></span></div></div></div>
-<div class="cursor-b" id="cursorB">B</div>
-<div class="app">
-<header class="topbar">
-  <a class="brand" href="#home"><span class="brand-b">B</span><span class="brand-name">B-Sneakers</span></a>
-  <nav class="nav"><a class="active" href="#home">Главная</a><a href="#shop">Магазин</a><a href="#friends">Дружба</a><a href="#profile">Профиль</a><a href="#admin" id="navAdmin">Админ</a></nav>
-  <label class="top-search"><input id="search" type="search" placeholder="Поиск кроссовок, брендов, друзей..."></label>
-  <div class="top-actions"><button class="round-btn" id="cartOpen" title="Корзина">♧<span class="count-dot" id="cartCount">0</span></button><button class="round-btn" id="adminQuick" title="Админ-панель">⚙</button><div class="avatar" title="Профиль">B</div></div>
-</header>
-<div class="layout">
-  <aside class="side-panel sidebar">
-    <a class="side-link active" href="#home"><span>⌂</span>Главная</a>
-    <a class="side-link" href="#shop"><span>▣</span>Магазин</a>
-    <a class="side-link" href="#friends"><span>♧</span>Дружба</a>
-    <a class="side-link" href="#chat"><span>◉</span>Чат</a>
-    <a class="side-link" href="#profile"><span>♙</span>Профиль</a>
-    <a class="side-link" href="#admin" id="sideAdmin"><span>⚙</span>Админ панель</a>
-    <div class="side-title">Популярные бренды</div>
-    <div class="brand-list"><div class="brand-row"><span class="brand-logo">✓</span>Nike</div><div class="brand-row"><span class="brand-logo">♟</span>Jordan</div><div class="brand-row"><span class="brand-logo">▰</span>Adidas</div><div class="brand-row"><span class="brand-logo">NB</span>New Balance</div><div class="brand-row"><span class="brand-logo">YZY</span>Yeezy</div><div class="brand-row"><span class="brand-logo">✳</span>Balenciaga</div><div class="brand-row"><span class="brand-logo">↗</span>Off-White</div><div class="brand-row"><span class="brand-logo">➤</span>Converse</div></div>
-    <div class="team-card"><div class="team-icon">♛</div><h4>Ты уже в команде?</h4><p>Покупай. Общайся. Дружи.<br>Будь в теме!</p><button class="btn" id="joinTeam">Перейти к друзьям</button></div>
-  </aside>
+  <div class="announcement"><span class="pulse"></span> НОВАЯ КОЛЛЕКЦИЯ УЖЕ ЗДЕСЬ <span class="announcement-right">Доставка по всему миру ↗</span></div>
+  <header class="header">
+    <a class="brand" href="#" aria-label="Baze China — главная"><span class="brand-mark">B</span><span>BAZE<span class="brand-light"> CHINA</span></span></a>
+    <nav class="nav" aria-label="Главная навигация">
+      <a href="#catalog">Каталог</a><a href="#story">О бренде</a><a href="#benefits">Преимущества</a>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-btn search-open" aria-label="Открыть поиск" title="Поиск">⌕</button>
+      <button class="cart-button" id="openCart"><span class="cart-icon">▱</span><span>Корзина</span><b id="cartCount">0</b></button>
+      <button class="menu-toggle" id="menuToggle" aria-label="Открыть меню">☰</button>
+    </div>
+  </header>
 
-  <main class="main-col" id="home">
+  <main>
     <section class="hero">
-      <div class="hero-copy"><div class="eyebrow">LIMITED COLLABORATION / DROP 026</div><h1>NIKE <span>JEREMY SCOTT</span> COLLECTION</h1><p>Легендарные коллаборации, смелые силуэты и культовая sneaker-культура — выбирай пару, которая говорит за тебя.</p><a class="btn" href="#shop">Смотреть коллекцию&nbsp; →</a></div>
-      <div class="hero-visual"><div class="shoe-glow"></div><div class="shoe-art">👟</div><div class="hero-sticker">B-SNEAKERS<br>EXCLUSIVE</div></div>
+      <div class="hero-grid"></div>
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="eyebrow-line"></span> STREET CULTURE / 2026</div>
+        <h1>ТВОЙ ШАГ.<br><span>ТВОИ ПРАВИЛА.</span></h1>
+        <p>Кроссовки для тех, кто не подстраивается под ритм города — а задаёт его сам.</p>
+        <div class="hero-cta"><a class="button button-primary" href="#catalog">Смотреть коллекцию <span>↗</span></a><a class="text-link" href="#story">Открыть историю <span>→</span></a></div>
+        <div class="hero-stats"><div><strong>01<span>/</span>26</strong><small>НОВАЯ ЭРА</small></div><div><strong>24<span>h</span></strong><small>СТИЛЬ БЕЗ ПАУЗ</small></div><div><strong>100<span>%</span></strong><small>ТВОЙ ВЫБОР</small></div></div>
+      </div>
+      <div class="hero-art" aria-label="Кроссовок в синем и чёрном цветах">
+        <div class="orb orb-one"></div><div class="orb orb-two"></div>
+        <div class="hero-number">B/C<br><span>001</span></div>
+        <div class="hero-sneaker-wrap"><img class="hero-sneaker" src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=90" alt="Красочный спортивный кроссовок" onerror="this.style.display='none'"></div>
+        <div class="floating-tag tag-top"><span class="tag-dot"></span> DROP 001 <b>LIMITED</b></div>
+        <div class="floating-tag tag-bottom"><span>✳</span> MOVE DIFFERENT <small>BAZE CHINA®</small></div>
+        <div class="hero-ring"></div>
+      </div>
+      <div class="hero-bottom"><span>SCROLL TO EXPLORE</span><span class="scroll-line"></span><span>59° 56' N / YOUR CITY</span></div>
     </section>
-    <div class="brand-strip"><span>NIKE</span><span>♟</span><span>adidas</span><span>NB</span><span>YEEZY</span><span>Off-White™</span><span>CONVERSE</span></div>
-    <section id="shop">
-      <div class="section-head"><h2>🔥 Популярные <span>кроссовки</span></h2><button id="showAll">Смотреть все →</button></div>
-      <div class="filters" id="filters"><button class="filter active" data-category="all">Все пары</button><button class="filter" data-category="nike">Nike</button><button class="filter" data-category="jordan">Jordan</button><button class="filter" data-category="adidas">Adidas / Yeezy</button><button class="filter" data-category="newbalance">New Balance</button><button class="filter" data-category="other">Другие</button></div>
-      <div class="products" id="products"></div>
-      <p id="empty" class="hidden" style="padding:30px;text-align:center;color:#94a2c4;font-size:12px">Ничего не найдено — попробуй другой запрос.</p>
+
+    <section class="ticker" aria-label="Слоган"><div class="ticker-track"><span>MOVE DIFFERENT ✳</span><span>BUILT FOR THE STREETS ✳</span><span>NO RULES. JUST MOTION. ✳</span><span>MOVE DIFFERENT ✳</span><span>BUILT FOR THE STREETS ✳</span></div></section>
+
+    <section class="catalog section" id="catalog">
+      <div class="section-head">
+        <div><div class="eyebrow"><span class="eyebrow-line"></span> THE SELECTION</div><h2>ВЫБЕРИ СВОЙ <span>РИТМ.</span></h2></div>
+        <p>От повседневной классики до смелых силуэтов.<br>Твоя следующая любимая пара — здесь.</p>
+      </div>
+      <div class="catalog-tools">
+        <div class="filters" role="group" aria-label="Категории">
+          <button class="filter active" data-category="all">Все модели <span>06</span></button>
+          <button class="filter" data-category="running">Running</button>
+          <button class="filter" data-category="street">Streetwear</button>
+          <button class="filter" data-category="classic">Classic</button>
+        </div>
+        <div class="tool-right"><label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Найти модель..." aria-label="Поиск моделей"></label><select id="sortSelect" aria-label="Сортировка"><option value="featured">Сначала популярные</option><option value="low">Сначала дешевле</option><option value="high">Сначала дороже</option></select></div>
+      </div>
+      <div class="product-grid" id="productGrid"></div>
+      <div class="catalog-footer"><span id="resultCount">06 моделей</span><span>DESIGNED FOR THE NEXT MOVE <span class="blue-dot">●</span></span></div>
     </section>
-    <section class="friend-banner" id="friends"><div><h2>Дружба — это тоже стиль</h2><p>Находи друзей, обсуждай релизы, делись коллекцией и вместе развивай свою любовь к кроссовкам.</p><button class="btn" id="findFriends">Найти друзей</button></div><div class="friend-people">🧑🏻‍💻🧑🏽‍🎤🧑🏼‍🚀</div></section>
-    <section class="new-products"><div class="section-head"><h2>✦ Новые <span>поступления</span></h2><button id="newAll">Смотреть все →</button></div><div class="mini-grid" id="miniGrid"></div></section>
+
+    <section class="manifesto" id="story">
+      <div class="manifesto-visual"><div class="manifesto-orbit"></div><div class="manifesto-big">B<span>/</span>C</div><div class="manifesto-caption">EST. FOR<br>THE UNCOMMON.</div><div class="manifesto-label">SHANGHAI → EVERYWHERE</div></div>
+      <div class="manifesto-copy"><div class="eyebrow"><span class="eyebrow-line"></span> MORE THAN A SNEAKER</div><h2>ГОРОД — ТВОЯ<br><span>ПЛОЩАДКА.</span></h2><p>Baze China — это энергия улиц, чистые линии и свобода двигаться по-своему. Мы собираем пары, которые говорят за тебя, ещё до первого слова.</p><p class="manifesto-small">Не следуй за движением. Создавай его.</p><a class="button button-outline" href="#catalog">Найти свою пару <span>↗</span></a></div>
+    </section>
+
+    <section class="benefits section" id="benefits">
+      <div class="section-head"><div><div class="eyebrow"><span class="eyebrow-line"></span> WHY BAZE</div><h2>МЕНЬШЕ ШУМА.<br><span>БОЛЬШЕ СТИЛЯ.</span></h2></div><p>Всё важное — в деталях.<br>И в том, как ты себя чувствуешь.</p></div>
+      <div class="benefit-grid">
+        <article class="benefit"><span class="benefit-icon">✳</span><span class="benefit-index">01 / COMFORT</span><h3>Комфорт на весь день</h3><p>Продуманные силуэты для длинных маршрутов и быстрых поворотов.</p></article>
+        <article class="benefit"><span class="benefit-icon">↗</span><span class="benefit-index">02 / DESIGN</span><h3>Дизайн вне времени</h3><p>Чёткие формы и смелые акценты, которые работают с твоим стилем.</p></article>
+        <article class="benefit"><span class="benefit-icon">◈</span><span class="benefit-index">03 / YOUR MOVE</span><h3>Выбор за тобой</h3><p>Найди свой цвет, размер и пару под свой собственный темп.</p></article>
+      </div>
+    </section>
+
+    <section class="newsletter">
+      <div><div class="eyebrow"><span class="eyebrow-line"></span> STAY IN MOTION</div><h2>БУДЬ ВНУТРИ<br><span>ДВИЖЕНИЯ.</span></h2><p>Новые дропы, свежие модели и новости Baze — без лишнего шума.</p></div>
+      <form id="newsletterForm" class="newsletter-form"><label for="emailInput">ТВОЙ EMAIL</label><div class="email-row"><input id="emailInput" type="email" placeholder="you@example.com" required><button type="submit" aria-label="Подписаться">↗</button></div><small id="newsletterMessage">Подписываясь, ты соглашаешься получать новости магазина.</small></form>
+      <div class="newsletter-decoration">BC<span>®</span></div>
+    </section>
   </main>
 
-  <aside class="right-col">
-    <section class="panel right-panel" id="chat"><div class="right-title">Друзья онлайн (5)<button id="allFriends">Все</button></div><div class="online-list" id="friendsList"></div><div class="divider"></div><div class="right-title">Последние сообщения</div><div class="online-list"><div class="user-row"><div class="user-avatar">🧑🏻</div><div class="user-info"><strong>Rostik</strong><div class="message-preview">Привет! Смотри какие кроссовки...</div></div></div><div class="user-row"><div class="user-avatar">👩🏽</div><div class="user-info"><strong>Anya</strong><div class="message-preview">Давай в дс, покажу свою коллекцию!</div></div></div><div class="user-row"><div class="user-avatar">🧑🏾</div><div class="user-info"><strong>Danya</strong><div class="message-preview">Круто! Где заказывал?</div></div></div></div><button class="btn" style="width:100%;margin-top:14px" id="openChat">Открыть чат</button></section>
-    <section class="panel right-panel"><div class="right-title">Топ пользователей <button id="leaderAll">Смотреть все →</button></div><div class="online-list" id="leaderboard"></div></section>
-    <section class="panel right-panel admin-summary" id="profile"><div class="right-title">♛ Админ панель <button id="openAdmin">Открыть →</button></div><div class="stat-grid"><div class="stat"><small>Всего пользователей</small><strong>1 284</strong><em>↗ +12%</em></div><div class="stat"><small>Всего заказов</small><strong id="orderStat">642</strong><em>↗ +18%</em></div><div class="stat"><small>Товаров в каталоге</small><strong id="productStat">0</strong><em>активно</em></div><div class="stat"><small>Общий доход</small><strong>1.56M ₽</strong><em>демо-данные</em></div></div><button class="btn secondary" style="width:100%;margin-top:12px" id="adminButton">Управление товарами</button></section>
+  <footer class="footer"><a class="brand" href="#"><span class="brand-mark">B</span><span>BAZE<span class="brand-light"> CHINA</span></span></a><span>MOVE DIFFERENT. © 2026 BAZE CHINA</span><div><a href="#catalog">Каталог</a><a href="#story">О бренде</a><a href="mailto:hello@baze-china.example">Связаться</a></div></footer>
+
+  <div class="overlay" id="overlay"></div>
+  <aside class="cart-drawer" id="cartDrawer" aria-label="Корзина" aria-hidden="true">
+    <div class="drawer-head"><div><span class="eyebrow">YOUR SELECTION</span><h2>Корзина <span id="drawerCount">(0)</span></h2></div><button class="close-btn" id="closeCart" aria-label="Закрыть корзину">×</button></div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-empty" id="cartEmpty"><div class="empty-symbol">▱</div><h3>Пока пусто</h3><p>Каждое большое движение начинается с первой пары.</p><button class="button button-primary" id="continueShopping">В каталог <span>↗</span></button></div>
+    <div class="cart-bottom" id="cartBottom"><div class="subtotal"><span>Итого</span><strong id="cartTotal">0 ₽</strong></div><p>Стоимость доставки рассчитывается при оформлении.</p><button class="button button-primary checkout-btn" id="checkoutBtn">Оформить заказ <span>↗</span></button><small>Демо-магазин: оплата не списывается.</small></div>
   </aside>
-</div>
-<footer class="footer"><span>© B-Sneakers 2026. Все права защищены.</span><span>Кроссовки. Дружба. Стиль.</span><strong>B — твой стиль. Твоя история.</strong></footer>
-</div>
 
-<div class="overlay" id="overlay"></div>
-<aside class="drawer" id="cartDrawer"><div class="drawer-head"><h2>ТВОЯ КОРЗИНА</h2><button class="x-btn" id="cartClose">×</button></div><div class="cart-list" id="cartList"></div><div class="cart-bottom"><div class="total"><span>Итого</span><strong id="cartTotal">0 ₽</strong></div><button class="btn" id="checkout">Оформить заказ →</button><p class="fineprint">Демо-магазин: оплата и доставка не подключены.</p></div></aside>
-
-<div class="modal" id="adminModal" role="dialog" aria-modal="true" aria-label="Админ-панель"><div class="modal-card"><div class="modal-head"><h2>⚙ АДМИН-ПАНЕЛЬ / ТОВАРЫ</h2><button class="x-btn" id="adminClose">×</button></div><p class="admin-note">Демонстрационная панель без авторизации: изменения сохраняются только в localStorage этого браузера. Не используй её для настоящих заказов или персональных данных.</p>
-<form id="productForm" class="admin-form"><input type="hidden" id="editId"><label class="field">Название кроссовок<input id="pName" required maxlength="90" placeholder="Nike Air Jordan 1"></label><label class="field">Цена (₽)<input id="pPrice" required type="number" min="1" placeholder="24990"></label><label class="field">Бренд / категория<select id="pCategory"><option value="nike">Nike</option><option value="jordan">Jordan</option><option value="adidas">Adidas / Yeezy</option><option value="newbalance">New Balance</option><option value="other">Другие</option></select></label><label class="field">Эмодзи / значок<input id="pEmoji" maxlength="8" placeholder="👟"></label><label class="field full">Описание / расцветка<input id="pSubtitle" maxlength="100" placeholder="White / Grey"></label><label class="field full">Метка<input id="pTag" maxlength="20" placeholder="NEW / LIMITED / HOT"></label><div class="field full" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" type="submit">Сохранить товар</button><button class="btn secondary" type="button" id="resetForm">Очистить форму</button></div></form>
-<div class="admin-list"><div class="section-head"><h2>Каталог товаров</h2><span style="font-size:10px;color:#9aa8c8" id="adminCount"></span></div><div id="adminList"></div></div></div></div>
-<div class="toast" id="toast" role="status"></div>
-
-<script>
-'use strict';
-const DEFAULT_PRODUCTS=[
-{id:'p1',name:'Nike Air Jordan 1 Chicago',subtitle:'Chicago / OG High',price:24990,category:'jordan',emoji:'👟',tag:'BESTSELLER'},
-{id:'p2',name:'Nike SB Dunk Low',subtitle:'Ben & Jerry’s Chunky Dunky',price:32990,category:'nike',emoji:'🥾',tag:'LIMITED'},
-{id:'p3',name:'Yeezy Boost 350 V2',subtitle:'Black / Onyx',price:26990,category:'adidas',emoji:'👟',tag:'HOT'},
-{id:'p4',name:'New Balance 550',subtitle:'White / Grey',price:16990,category:'newbalance',emoji:'👞',tag:''},
-{id:'p5',name:'Nike Air Force 1 ’07',subtitle:'Triple White',price:12990,category:'nike',emoji:'👟',tag:'CLASSIC'},
-{id:'p6',name:'Adidas Yeezy 700',subtitle:'Wave Runner',price:29990,category:'adidas',emoji:'🥾',tag:'NEW'},
-{id:'p7',name:'Nike Jeremy Scott Wings',subtitle:'Black / Metallic Gold',price:45990,category:'nike',emoji:'🪽',tag:'RARE'},
-{id:'p8',name:'Jordan 4 Retro',subtitle:'White Cement',price:28990,category:'jordan',emoji:'👟',tag:'NEW'},
-{id:'p9',name:'Nike Dunk Low Panda',subtitle:'Black / White',price:14990,category:'nike',emoji:'👟',tag:''},
-{id:'p10',name:'Balenciaga Track',subtitle:'Grey / Neon',price:51990,category:'other',emoji:'🥾',tag:'PREMIUM'},
-{id:'p11',name:'Converse Chuck 70',subtitle:'Black / Egret',price:9990,category:'other',emoji:'👟',tag:''},
-{id:'p12',name:'New Balance 9060',subtitle:'Grey / Rain Cloud',price:21990,category:'newbalance',emoji:'👞',tag:'TREND'}
-];
-const KEY_PRODUCTS='bsneakers_products_v1',KEY_CART='bsneakers_cart_v1',KEY_LIKES='bsneakers_likes_v1';
-const $=s=>document.querySelector(s);
-const money=n=>new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:0}).format(Number(n)||0);
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function load(key,fallback){try{const x=localStorage.getItem(key);return x?JSON.parse(x):fallback}catch{return fallback}}
-function save(key,value){try{localStorage.setItem(key,JSON.stringify(value))}catch{notify('Не удалось сохранить изменения в браузере.')}}
-let products=load(KEY_PRODUCTS,DEFAULT_PRODUCTS),cart=load(KEY_CART,[]),likes=load(KEY_LIKES,[]),category='all',query='',toastTimer;
-if(!Array.isArray(products))products=[...DEFAULT_PRODUCTS];if(!Array.isArray(cart))cart=[];if(!Array.isArray(likes))likes=[];
-function notify(msg){$('#toast').textContent=msg;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),2500)}
-function getProduct(id){return products.find(p=>p.id===id)}
-function productCard(p,i){return `<article class="product" style="animation-delay:${i*35}ms"><div class="product-visual"><button class="heart ${likes.includes(p.id)?'liked':''}" data-like="${esc(p.id)}" aria-label="В избранное">${likes.includes(p.id)?'♥':'♡'}</button>${p.tag?`<span class="tag">${esc(p.tag)}</span>`:''}<span class="product-emoji">${esc(p.emoji||'👟')}</span></div><h3>${esc(p.name)}</h3><div class="subtitle">${esc(p.subtitle||'Sneaker collection')}</div><div class="price-row"><span class="price">${money(p.price)}</span></div><button class="btn" data-add="${esc(p.id)}">В корзину ♧</button></article>`}
-function filtered(){return products.filter(p=>(category==='all'||p.category===category)&&`${p.name} ${p.subtitle} ${p.category}`.toLowerCase().includes(query.toLowerCase()))}
-function renderProducts(){const list=filtered();$('#products').innerHTML=list.map(productCard).join('');$('#empty').classList.toggle('hidden',list.length>0);$('#productStat').textContent=products.length;renderMini()}
-function renderMini(){const items=[...products].slice(-5).reverse();$('#miniGrid').innerHTML=items.map(p=>`<article class="mini-product"><div class="mini-art">${esc(p.emoji||'👟')}</div><h4>${esc(p.name)}</h4><p>${money(p.price)}</p></article>`).join('')}
-function renderCart(){cart=cart.filter(x=>getProduct(x.id)&&x.qty>0);const count=cart.reduce((s,x)=>s+x.qty,0),total=cart.reduce((s,x)=>s+getProduct(x.id).price*x.qty,0);$('#cartCount').textContent=count;$('#cartTotal').textContent=money(total);$('#cartList').innerHTML=cart.length?cart.map(x=>{const p=getProduct(x.id);return `<div class="cart-row"><div class="cart-art">${esc(p.emoji||'👟')}</div><div><h4>${esc(p.name)}</h4><p>${money(p.price*x.qty)}</p><div class="qty"><button data-qty="${esc(p.id)}" data-delta="-1">−</button><span>${x.qty}</span><button data-qty="${esc(p.id)}" data-delta="1">+</button></div></div><button class="remove" data-remove="${esc(p.id)}">×</button></div>`}).join(''):'<p style="text-align:center;color:#8998bb;padding:45px 0;font-size:12px">Корзина пока пуста. Найди свою пару ✦</p>';save(KEY_CART,cart)}
-function addCart(id){if(!getProduct(id))return;const row=cart.find(x=>x.id===id);row?row.qty++:cart.push({id,qty:1});renderCart();notify('Добавлено в корзину ✦')}
-function openCart(){closeAdmin();$('#overlay').classList.add('show');$('#cartDrawer').classList.add('open')}
-function closeCart(){ $('#overlay').classList.remove('show');$('#cartDrawer').classList.remove('open')}
-function openAdmin(){closeCart();$('#adminModal').classList.add('open');renderAdmin()}
-function closeAdmin(){$('#adminModal').classList.remove('open')}
-$('#products').addEventListener('click',e=>{const add=e.target.closest('[data-add]'),like=e.target.closest('[data-like]');if(add)addCart(add.dataset.add);if(like){const id=like.dataset.like;likes=likes.includes(id)?likes.filter(x=>x!==id):[...likes,id];save(KEY_LIKES,likes);renderProducts();notify(likes.includes(id)?'Добавлено в избранное ♥':'Удалено из избранного')}})
-$('#filters').addEventListener('click',e=>{const b=e.target.closest('[data-category]');if(!b)return;category=b.dataset.category;document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x===b));renderProducts()});
-$('#search').addEventListener('input',e=>{query=e.target.value.trim();renderProducts();if(query)$('#shop').scrollIntoView({behavior:'smooth',block:'start'})});
-$('#showAll').addEventListener('click',()=>{category='all';query='';$('#search').value='';document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x.dataset.category==='all'));renderProducts()});
-$('#newAll').addEventListener('click',()=>$('#showAll').click());
-$('#cartOpen').addEventListener('click',openCart);$('#cartClose').addEventListener('click',closeCart);$('#overlay').addEventListener('click',closeCart);
-$('#checkout').addEventListener('click',()=>notify(cart.length?'Демо: подключи оплату и сервер для реального заказа.':'Сначала добавь пару в корзину.'));
-$('#cartList').addEventListener('click',e=>{const q=e.target.closest('[data-qty]'),r=e.target.closest('[data-remove]');if(q){const item=cart.find(x=>x.id===q.dataset.qty);if(item)item.qty+=Number(q.dataset.delta);cart=cart.filter(x=>x.qty>0);renderCart()}if(r){cart=cart.filter(x=>x.id!==r.dataset.remove);renderCart()}});
-const adminModal=$('#adminModal');
-$('#openAdmin').addEventListener('click',openAdmin);$('#adminQuick').addEventListener('click',openAdmin);$('#adminButton').addEventListener('click',openAdmin);$('#adminClose').addEventListener('click',closeAdmin);$('#navAdmin').addEventListener('click',e=>{e.preventDefault();openAdmin()});$('#sideAdmin').addEventListener('click',e=>{e.preventDefault();openAdmin()});
-adminModal.addEventListener('click',e=>{if(e.target===adminModal)closeAdmin()});
-function resetForm(){$('#productForm').reset();$('#editId').value=''}
-$('#resetForm').addEventListener('click',resetForm);
-$('#productForm').addEventListener('submit',e=>{e.preventDefault();const id=$('#editId').value,name=$('#pName').value.trim(),price=Number($('#pPrice').value);if(!name||!Number.isFinite(price)||price<=0){notify('Проверь название и цену.');return}const item={id:id||'custom-'+Date.now(),name,price,category:$('#pCategory').value,emoji:$('#pEmoji').value.trim()||'👟',subtitle:$('#pSubtitle').value.trim(),tag:$('#pTag').value.trim()};if(id){products=products.map(p=>p.id===id?item:p);notify('Товар обновлён')}else{products.unshift(item);notify('Новый товар добавлен')}save(KEY_PRODUCTS,products);resetForm();renderProducts();renderCart();renderAdmin()});
-function renderAdmin(){$('#adminCount').textContent=products.length+' товаров';$('#adminList').innerHTML=products.map(p=>`<div class="admin-product-row"><div><strong>${esc(p.emoji||'👟')} ${esc(p.name)}</strong><small>${money(p.price)} · ${esc(p.category)}</small></div><div class="admin-actions"><button data-edit="${esc(p.id)}">Изменить</button><button class="delete" data-delete="${esc(p.id)}">Удалить</button></div></div>`).join('')}
-$('#adminList').addEventListener('click',e=>{const edit=e.target.closest('[data-edit]'),del=e.target.closest('[data-delete]');if(edit){const p=getProduct(edit.dataset.edit);if(!p)return;$('#editId').value=p.id;$('#pName').value=p.name;$('#pPrice').value=p.price;$('#pCategory').value=p.category;$('#pEmoji').value=p.emoji||'';$('#pSubtitle').value=p.subtitle||'';$('#pTag').value=p.tag||'';$('#pName').focus()}if(del){const p=getProduct(del.dataset.delete);if(!p)return;if(!confirm('Удалить товар «'+p.name+'»?'))return;products=products.filter(x=>x.id!==p.id);cart=cart.filter(x=>x.id!==p.id);likes=likes.filter(x=>x!==p.id);save(KEY_PRODUCTS,products);save(KEY_CART,cart);save(KEY_LIKES,likes);renderProducts();renderCart();renderAdmin();notify('Товар удалён')}});
-const friends=[['🧑🏻','Rostik','В сети'],['👩🏽','Anya','В сети'],['🧑🏾','Danya','В сети'],['👩🏻','Kira','В сети'],['🧑🏼','Slava','В сети']];
-$('#friendsList').innerHTML=friends.map(f=>`<div class="user-row"><div class="user-avatar">${f[0]}</div><div class="user-info"><strong>${f[1]}</strong><small>${f[2]}</small></div></div>`).join('');
-const leaders=[['🕶️','SneakerKing','32 450 ₽'],['👩🏻','KiraSneaks','28 900 ₽'],['🧢','JordanLover','25 760 ₽'],['👟','YeezyMaster','22 410 ₽'],['🎧','StreetStyle','18 230 ₽']];
-$('#leaderboard').innerHTML=leaders.map((u,i)=>`<div class="user-row"><div class="user-avatar">${u[0]}</div><div class="user-info"><strong>${u[1]}</strong><div class="leader-score">${u[2]}</div></div><span class="leader-rank">${i===0?'♛':''}</span></div>`).join('');
-function friendAction(){notify('Демо-раздел дружбы: здесь можно подключить поиск пользователей и реальные чаты.')}
-['joinTeam','findFriends','allFriends','leaderAll','openChat'].forEach(id=>$('#'+id).addEventListener('click',friendAction));
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCart();closeAdmin()}});
-const cursor=$('#cursorB');if(matchMedia('(hover:hover) and (pointer:fine)').matches){document.addEventListener('mousemove',e=>{cursor.style.left=e.clientX+'px';cursor.style.top=e.clientY+'px'});document.addEventListener('mouseover',e=>cursor.classList.toggle('hover',!!e.target.closest('a,button,input')))}else cursor.style.display='none';
-window.addEventListener('load',()=>setTimeout(()=>$('#loader').classList.add('done'),450));
-renderProducts();renderCart();
-</script>
+  <div class="modal-wrap" id="productModal" role="dialog" aria-modal="true" aria-label="Информация о товаре">
+    <div class="modal-card"><button class="close-btn modal-close" id="closeModal" aria-label="Закрыть">×</button><div id="modalContent"></div></div>
+  </div>
+  <div class="modal-wrap" id="checkoutModal" role="dialog" aria-modal="true" aria-label="Оформление заказа">
+    <div class="modal-card checkout-card"><button class="close-btn modal-close" id="closeCheckout" aria-label="Закрыть">×</button><div class="eyebrow"><span class="eyebrow-line"></span> CHECKOUT</div><h2>ОФОРМЛЕНИЕ <span>ЗАКАЗА.</span></h2><p class="checkout-intro">Заполни данные — мы покажем подтверждение заказа в демо-режиме.</p><form id="checkoutForm" class="checkout-form"><label>Имя и фамилия<input name="name" required minlength="2" placeholder="Александр Иванов"></label><label>Email<input name="email" type="email" required placeholder="you@example.com"></label><label>Адрес доставки<input name="address" required minlength="5" placeholder="Город, улица, дом"></label><label>Способ доставки<select name="delivery"><option>Курьер</option><option>Пункт выдачи</option></select></label><div class="checkout-total"><span>К оплате</span><strong id="checkoutTotal">0 ₽</strong></div><button class="button button-primary" type="submit">Подтвердить демо-заказ <span>↗</span></button><small>Это демонстрация интерфейса. Данные никуда не отправляются.</small></form><div id="orderSuccess" class="order-success" hidden><div class="success-mark">✓</div><h3>Заказ оформлен!</h3><p id="successText">Спасибо за выбор Baze China.</p><button class="button button-outline" id="finishOrder">Вернуться в магазин ↗</button></div></div>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="script.js"></script>
 </body>
 </html>
