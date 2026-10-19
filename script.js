@@ -1,4 +1,4 @@
-const products = [
+let products = [
   {id:1,name:"Phantom Blue 01",category:"running",type:"RUNNING / 01",price:8490,oldPrice:9990,label:"BESTSELLER",desc:"Лёгкий силуэт и энергия для каждого километра.",image:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=85",sizes:[39,40,41,42,43,44,45]},
   {id:2,name:"Midnight Runner",category:"running",type:"RUNNING / 02",price:7290,label:"NEW DROP",desc:"Глубокий чёрный. Максимальный комфорт в движении.",image:"https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=900&q=85",sizes:[39,40,41,42,43,44]},
   {id:3,name:"Blue District",category:"street",type:"STREETWEAR / 01",price:9690,label:"LIMITED",desc:"Выразительная пара для тех, кто задаёт тренды.",image:"https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&w=900&q=85",sizes:[40,41,42,43,44,45]},
@@ -9,6 +9,47 @@ const products = [
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const money = n => new Intl.NumberFormat("ru-RU").format(n) + " ₽";
+
+// Supabase client: publishable key is intended for browser use; database RLS protects writes.
+const SUPABASE_URL = "https://mpmdhxhhsljllouqrbtr.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_wZfkO7LLjZyX8Z0D7_b4GA_YhLXsdP9";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let isAdmin = false;
+let productsLoadedFromDb = false;
+const fallbackProducts = products.map(p => ({...p, sizes:[...p.sizes]}));
+
+function mapProductRow(row){
+  return {id:Number(row.id), name:row.name, category:row.category, type:row.type || `${String(row.category||"classic").toUpperCase()} / CUSTOM`, price:Number(row.price), oldPrice:row.old_price==null?null:Number(row.old_price), label:row.label||"NEW", desc:row.description||"", image:row.image||"", sizes:Array.isArray(row.sizes)&&row.sizes.length?row.sizes:[39,40,41,42,43,44,45]};
+}
+function productToRow(p){
+  return {name:p.name,category:p.category,type:p.type,price:p.price,old_price:p.oldPrice||null,label:p.label||"NEW",description:p.desc||"",image:p.image||"",sizes:p.sizes||[39,40,41,42,43,44,45]};
+}
+async function refreshProductsFromDb(){
+  const {data,error}=await supabaseClient.from("products").select("*").order("id",{ascending:true});
+  if(error){console.error("Supabase products read failed:",error.message);showToast("Не удалось загрузить товары из базы");return false;}
+  productsLoadedFromDb=true;
+  if(data.length){products=data.map(mapProductRow);}
+  else {products=fallbackProducts.map(p=>({...p,sizes:[...p.sizes]}));}
+  // Remove cart entries for products that no longer exist in the active catalog.
+  cart=cart.filter(item=>products.some(p=>p.id===item.id));saveCart();renderProducts();renderCart();
+  return true;
+}
+async function verifyAdminSession(){
+  const {data:{user},error:authError}=await supabaseClient.auth.getUser();
+  if(authError||!user)return false;
+  const {data,error}=await supabaseClient.from("admin_users").select("user_id").eq("user_id",user.id).maybeSingle();
+  if(error){console.error("Admin check failed:",error.message);return false;}
+  return Boolean(data);
+}
+async function seedProductsIfEmpty(){
+  const {data,error}=await supabaseClient.from("products").select("id").limit(1);
+  if(error)throw error;
+  if(data.length)return;
+  const seed=fallbackProducts.map(productToRow);
+  const {error:insertError}=await supabaseClient.from("products").insert(seed);
+  if(insertError)throw insertError;
+  await refreshProductsFromDb();
+}
 let activeCategory = "all", searchTerm = "", sortMode = "featured";
 let cart = JSON.parse(localStorage.getItem("bazeCart") || "[]");
 let favorites = JSON.parse(localStorage.getItem("bazeFavorites") || "[]");
@@ -40,12 +81,12 @@ function renderProducts(){
 function showToast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2400)}
 function addToCart(id,size=42){const p=products.find(x=>x.id===id);if(!p)return;const found=cart.find(x=>x.id===id&&x.size===size);if(found)found.qty++;else cart.push({id,size,qty:1});saveCart();renderCart();showToast(`${p.name} добавлен в корзину`)}
 function cartQuantity(){return cart.reduce((sum,x)=>sum+x.qty,0)}
-function cartTotal(){return cart.reduce((sum,x)=>sum+products.find(p=>p.id===x.id).price*x.qty,0)}
+function cartTotal(){return cart.reduce((sum,x)=>{const p=products.find(item=>item.id===x.id);return sum+(p?p.price*x.qty:0)},0)}
 function renderCart(){
   $("#cartCount").textContent=cartQuantity();$("#drawerCount").textContent=`(${cartQuantity()})`;
   $("#cartTotal").textContent=money(cartTotal());$("#checkoutTotal").textContent=money(cartTotal());
   const empty=cart.length===0;$("#cartEmpty").style.display=empty?"block":"none";$("#cartBottom").style.display=empty?"none":"block";
-  $("#cartItems").innerHTML=cart.map(item=>{const p=products.find(x=>x.id===item.id);return `<div class="cart-line"><img src="${p.image}" alt=""><div><h3>${p.name}</h3><p>Размер: EU ${item.size}</p><span class="line-price">${money(p.price)}</span><div class="qty-control"><button data-qty="${p.id}" data-size="${item.size}" data-delta="-1" aria-label="Уменьшить">−</button><span>${item.qty}</span><button data-qty="${p.id}" data-size="${item.size}" data-delta="1" aria-label="Увеличить">+</button></div></div><button class="remove-item" data-remove="${p.id}" data-size="${item.size}" aria-label="Удалить">×</button></div>`}).join("");
+  $("#cartItems").innerHTML=cart.map(item=>{const p=products.find(x=>x.id===item.id);if(!p)return "";return `<div class="cart-line"><img src="${p.image}" alt=""><div><h3>${p.name}</h3><p>Размер: EU ${item.size}</p><span class="line-price">${money(p.price)}</span><div class="qty-control"><button data-qty="${p.id}" data-size="${item.size}" data-delta="-1" aria-label="Уменьшить">−</button><span>${item.qty}</span><button data-qty="${p.id}" data-size="${item.size}" data-delta="1" aria-label="Увеличить">+</button></div></div><button class="remove-item" data-remove="${p.id}" data-size="${item.size}" aria-label="Удалить">×</button></div>`}).join("");
 }
 function openCart(){ $("#overlay").classList.add("open");$("#cartDrawer").classList.add("open");$("#cartDrawer").setAttribute("aria-hidden","false");document.body.classList.add("locked")}
 function closeCart(){ $("#overlay").classList.remove("open");$("#cartDrawer").classList.remove("open");$("#cartDrawer").setAttribute("aria-hidden","true");document.body.classList.remove("locked")}
@@ -119,8 +160,8 @@ function adminTabButtons(){ $$(".admin-tab").forEach(b=>b.classList.toggle("acti
 function renderAdmin(){
  adminTabButtons();const root=$("#adminPanelContent");
  if(adminTab==="products"){
-  root.innerHTML=`<form class="admin-form" id="adminProductForm"><label>Название<input name="name" required placeholder="Название модели"></label><label>Цена, ₽<input name="price" type="number" min="1" required placeholder="7990"></label><label>Категория<select name="category"><option value="running">Running</option><option value="street">Streetwear</option><option value="classic">Classic</option></select></label><label>URL фото<input name="image" type="url" placeholder="https://..."></label><label class="wide">Описание<textarea name="desc" rows="2" required placeholder="Коротко о модели"></textarea></label><button class="button button-primary" type="submit">Добавить товар +</button></form><div class="admin-list">${products.map(p=>`<div class="admin-list-item"><img src="${p.image}" alt=""><div class="admin-item-copy"><strong>${escapeHtml(p.name)}</strong><small>${money(p.price)} · ${p.category}</small></div><button data-admin-delete-product="${p.id}">Удалить</button></div>`).join("")}</div><p class="admin-note">Изменения товаров доступны только до перезагрузки страницы. Для постоянного управления нужен сервер или отдельная база данных.</p>`;
-  $("#adminProductForm").addEventListener("submit",e=>{e.preventDefault();const d=new FormData(e.currentTarget);const name=d.get("name").trim();const image=d.get("image").trim()||"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=85";products.push({id:Math.max(...products.map(p=>p.id),0)+1,name,category:d.get("category"),type:d.get("category").toUpperCase()+" / CUSTOM",price:Number(d.get("price")),label:"NEW",desc:d.get("desc").trim(),image,sizes:[39,40,41,42,43,44,45]});renderProducts();renderAdmin();showToast("Товар добавлен в демо-каталог")});
+  root.innerHTML=`<form class="admin-form" id="adminProductForm"><label>Название<input name="name" required placeholder="Название модели"></label><label>Цена, ₽<input name="price" type="number" min="1" required placeholder="7990"></label><label>Категория<select name="category"><option value="running">Running</option><option value="street">Streetwear</option><option value="classic">Classic</option></select></label><label>URL фото<input name="image" type="url" placeholder="https://..."></label><label class="wide">Описание<textarea name="desc" rows="2" required placeholder="Коротко о модели"></textarea></label><button class="button button-primary" type="submit">Добавить товар +</button></form><div class="admin-list">${products.map(p=>`<div class="admin-list-item"><img src="${p.image}" alt=""><div class="admin-item-copy"><strong>${escapeHtml(p.name)}</strong><small>${money(p.price)} · ${p.category}</small></div><button data-admin-delete-product="${p.id}">Удалить</button></div>`).join("")}</div><p class="admin-note">Товары сохраняются в Supabase. Новости и отзывы пока остаются в демо-режиме этого браузера.</p>`;
+  $("#adminProductForm").addEventListener("submit",async e=>{e.preventDefault();if(!isAdmin){showToast("Сначала войди как администратор");return}const d=new FormData(e.currentTarget);const category=d.get("category");const product={name:d.get("name").trim(),category,type:category.toUpperCase()+" / CUSTOM",price:Number(d.get("price")),oldPrice:null,label:"NEW",desc:d.get("desc").trim(),image:d.get("image").trim()||"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=85",sizes:[39,40,41,42,43,44,45]};const {error}=await supabaseClient.from("products").insert(productToRow(product));if(error){console.error(error);showToast("Не удалось сохранить товар. Проверь политики Supabase");return}await refreshProductsFromDb();renderAdmin();e.currentTarget.reset();showToast("Товар сохранён в Supabase")});
  }else if(adminTab==="news"){
   root.innerHTML=`<form class="admin-form" id="adminNewsForm"><label>Заголовок<input name="title" required placeholder="Заголовок новости"></label><label>Категория<input name="tag" placeholder="BRAND NOTES" value="BAZE NEWS"></label><label class="wide">Текст<textarea name="text" required minlength="10" rows="3" placeholder="Текст новости"></textarea></label><button class="button button-primary" type="submit">Опубликовать новость +</button></form><div class="admin-list">${newsItems.map(n=>`<div class="admin-list-item"><div class="admin-item-copy"><strong>${escapeHtml(n.title)}</strong><small>${escapeHtml(n.tag||"BAZE NEWS")} · ${escapeHtml(n.date||"")}</small></div><button data-admin-delete-news="${n.id}">Удалить</button></div>`).join("")}</div>`;
   $("#adminNewsForm").addEventListener("submit",e=>{e.preventDefault();const d=new FormData(e.currentTarget);newsItems.unshift({id:Date.now(),date:new Date().toLocaleDateString("ru-RU"),tag:d.get("tag").trim()||"BAZE NEWS",title:d.get("title").trim(),text:d.get("text").trim(),symbol:"B/C"});saveNews();renderNews();renderAdmin();showToast("Новость опубликована")});
@@ -134,11 +175,26 @@ $("#reviewModal").addEventListener("click",e=>{if(e.target===$("#reviewModal"))c
 $("#reviewForm").addEventListener("submit",e=>{e.preventDefault();const d=new FormData(e.currentTarget);reviews.unshift({id:Date.now(),name:d.get("reviewName").trim(),rating:Number(d.get("rating")),text:d.get("reviewText").trim(),date:new Date().toLocaleDateString("ru-RU")});saveReviews();renderReviews();e.currentTarget.reset();closeReview();showToast("Спасибо! Отзыв добавлен")});
 $("#closeAdmin").addEventListener("click",closeAdmin);
 $("#adminModal").addEventListener("click",e=>{if(e.target===$("#adminModal"))closeAdmin()});
-$("#adminLoginBtn").addEventListener("click",()=>{if($("#adminCode").value==="BAZE2026"){$("#adminLogin").hidden=true;$("#adminDashboard").hidden=false;adminTab="products";renderAdmin()}else showToast("Неверный демо-код")});
+async function loginAdmin(){
+ const email=$("#adminEmail").value.trim();const password=$("#adminPassword").value;
+ if(!email||!password){showToast("Введи email и пароль");return}
+ const btn=$("#adminLoginBtn");btn.disabled=true;btn.textContent="Входим…";
+ try{
+  const {error}=await supabaseClient.auth.signInWithPassword({email,password});
+  if(error)throw error;
+  isAdmin=await verifyAdminSession();
+  if(!isAdmin){await supabaseClient.auth.signOut();throw new Error("Этот аккаунт не добавлен в список администраторов")}
+  await seedProductsIfEmpty();
+  $("#adminLogin").hidden=true;$("#adminDashboard").hidden=false;adminTab="products";renderAdmin();showToast("Вход администратора выполнен");
+ }catch(err){console.error(err);showToast(err.message||"Не удалось войти. Проверь данные входа")}
+ finally{btn.disabled=false;btn.innerHTML='Войти <span>↗</span>'}
+}
+$("#adminLoginBtn").addEventListener("click",loginAdmin);
+$("#adminPassword").addEventListener("keydown",e=>{if(e.key==="Enter")loginAdmin()});
 $$('a[href="#admin"]').forEach(a=>a.addEventListener("click",e=>{e.preventDefault();openAdmin()}));
 $("#adminDashboard").addEventListener("click",e=>{
  const tab=e.target.closest("[data-admin-tab]");if(tab){adminTab=tab.dataset.adminTab;renderAdmin();return}
- const dp=e.target.closest("[data-admin-delete-product]");if(dp){const id=Number(dp.dataset.adminDeleteProduct);const ix=products.findIndex(p=>p.id===id);if(ix>=0)products.splice(ix,1);cart=cart.filter(c=>c.id!==id);saveCart();renderCart();renderProducts();renderAdmin();showToast("Товар удалён из демо-каталога");return}
+ const dp=e.target.closest("[data-admin-delete-product]");if(dp){(async()=>{const id=Number(dp.dataset.adminDeleteProduct);if(!isAdmin){showToast("Нет прав администратора");return}const {error}=await supabaseClient.from("products").delete().eq("id",id);if(error){console.error(error);showToast("Не удалось удалить товар");return}await refreshProductsFromDb();renderAdmin();showToast("Товар удалён из Supabase")})();return}
  const dn=e.target.closest("[data-admin-delete-news]");if(dn){newsItems=newsItems.filter(n=>n.id!==Number(dn.dataset.adminDeleteNews));saveNews();renderNews();renderAdmin();showToast("Новость удалена");return}
  const dr=e.target.closest("[data-admin-delete-review]");if(dr){reviews=reviews.filter(r=>r.id!==Number(dr.dataset.adminDeleteReview));saveReviews();renderReviews();renderAdmin();showToast("Отзыв удалён")}
 });
@@ -146,3 +202,4 @@ $("#newsGrid").addEventListener("click",e=>{const b=e.target.closest("[data-news
 const oldEscapeHandler = null;
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeReview();closeAdmin()}});
 renderReviews();renderNews();
+refreshProductsFromDb();
