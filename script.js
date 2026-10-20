@@ -400,3 +400,75 @@ refreshProductsFromDb();
    document.addEventListener('mouseover',e=>{if(e.target.closest('a,button,[role="button"],input,select,textarea,.product-card'))cursor.classList.add('is-hover');else cursor.classList.remove('is-hover')},{passive:true});
  }
 })();
+
+/* BAZE CHINA — wishlist filter, order lookup, hero interaction, PWA */
+let showFavoritesOnly = false;
+const favFilterButton = document.getElementById("favoritesFilter");
+const favCountNode = document.getElementById("favoritesCount");
+const baseVisibleProducts = visibleProducts;
+visibleProducts = function(){
+  const list = baseVisibleProducts();
+  return showFavoritesOnly ? list.filter(p=>favorites.includes(p.id)) : list;
+};
+const originalRenderProducts = renderProducts;
+renderProducts = function(){
+  originalRenderProducts();
+  if(favCountNode) favCountNode.textContent=String(favorites.length);
+  if(favFilterButton) {
+    favFilterButton.classList.toggle("active",showFavoritesOnly);
+    favFilterButton.setAttribute("aria-pressed",String(showFavoritesOnly));
+  }
+};
+if(favFilterButton) favFilterButton.addEventListener("click",()=>{
+ showFavoritesOnly=!showFavoritesOnly;
+ if(showFavoritesOnly){activeCategory="all";$$(".filter[data-category]").forEach(b=>b.classList.toggle("active",b.dataset.category==="all"))}
+ renderProducts();
+ if(showFavoritesOnly) $("#catalog").scrollIntoView({behavior:"smooth",block:"start"});
+});
+/* Secure-by-filter lookup: only request the matching order id + checkout phone. RLS remains enforced by Supabase. */
+$("#orderLookupForm")?.addEventListener("submit",async e=>{
+ e.preventDefault();
+ const form=e.currentTarget, data=new FormData(form), orderId=String(data.get("orderId")||"").trim(), phone=String(data.get("phone")||"").trim();
+ const result=$("#orderLookupResult"), button=form.querySelector('button[type="submit"]');
+ result.hidden=false;result.innerHTML='<p>Проверяем данные заказа…</p>';button.disabled=true;
+ try{
+  const {data:order,error}=await supabaseClient.from("orders").select("id,status,created_at,total,phone").eq("id",orderId).eq("phone",phone).maybeSingle();
+  if(error)throw error;
+  if(!order){result.innerHTML='<strong>Заказ не найден</strong><p>Проверь номер и телефон, указанные при оформлении. Если заказ только что создан, попробуй ещё раз позже.</p>';return}
+  const statusLabels={new:"Принят",confirmed:"Подтверждён",shipped:"Отправлен",completed:"Завершён",cancelled:"Отменён"};
+  const stages=["new","confirmed","shipped","completed"], active=stages.indexOf(order.status);
+  const date=order.created_at?new Date(order.created_at).toLocaleString("ru-RU"):"";
+  result.innerHTML='<div class="tracking-status">'+escapeHtml(statusLabels[order.status]||order.status||"Статус обновляется")+'</div><h3>Заказ №'+escapeHtml(order.id)+'</h3><p>'+(date?'Создан: '+escapeHtml(date):'')+(order.total!=null?' · Сумма: '+escapeHtml(money(Number(order.total))):'')+'</p><div class="tracking-steps">'+stages.map((s,i)=>'<span class="tracking-step '+(active>=i?'is-active':'')+'">'+escapeHtml(statusLabels[s])+'</span>').join("")+'</div>';
+ }catch(err){
+  console.error("Order lookup failed:",err);
+  result.innerHTML='<strong>Не удалось проверить заказ</strong><p>База данных не разрешила просмотр статуса или временно недоступна. Проверь настройки RLS в Supabase; сайт не показывает чужие заказы.</p>';
+ }finally{button.disabled=false}
+});
+/* Gentle pointer-driven depth on desktop only. */
+(()=>{
+ const art=$("#heroArt");
+ if(!art||!window.matchMedia("(pointer:fine)").matches||window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+ const hero=art.closest(".hero");
+ hero?.addEventListener("mousemove",e=>{
+  const r=hero.getBoundingClientRect(),nx=(e.clientX-r.left)/r.width-.5,ny=(e.clientY-r.top)/r.height-.5;
+  art.style.transform='perspective(1000px) rotateY('+(nx*5).toFixed(2)+'deg) rotateX('+(-ny*3).toFixed(2)+'deg) translate3d('+(nx*8).toFixed(1)+'px,'+(ny*6).toFixed(1)+'px,0)';
+ });
+ hero?.addEventListener("mouseleave",()=>{art.style.transform=""});
+})();
+/* PWA installation and same-origin offline shell; works with project-page relative paths. */
+let deferredInstallPrompt=null;
+const installButton=$("#installApp");
+window.addEventListener("beforeinstallprompt",event=>{
+ event.preventDefault();deferredInstallPrompt=event;
+ if(installButton)installButton.hidden=false;
+});
+installButton?.addEventListener("click",async()=>{
+ if(!deferredInstallPrompt){showToast("Открой меню браузера и выбери «Установить приложение» или «На экран Домой»");return}
+ deferredInstallPrompt.prompt();
+ await deferredInstallPrompt.userChoice;
+ deferredInstallPrompt=null;installButton.hidden=true;
+});
+window.addEventListener("appinstalled",()=>{if(installButton)installButton.hidden=true;showToast("Baze China добавлен на устройство")});
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+ window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(err=>console.warn("PWA offline cache unavailable:",err)));
+}
