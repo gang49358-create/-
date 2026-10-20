@@ -1,10 +1,9 @@
-BAZE CHINA — SCRIPT.JS
+BAZE CHINA — исправление сохранения отзывов
 
-1. Open the repository: https://github.com/gang49358-create/bazechias
-2. Open script.js and replace its contents with the included script.js.
-3. Commit changes and wait for GitHub Pages to deploy.
-4. Reload the site with Ctrl+F5.
+1. Открой script.js в репозитории GitHub.
+2. Замени содержимое файла содержимым script.js из этого архива.
+3. Commit changes и дождись обновления GitHub Pages.
+4. Обнови сайт через Ctrl+F5 и отправь тестовый отзыв.
 
-This version includes the existing shop/admin/review code and sends BOTH `content` and `text` when publishing news, because the Supabase news_items table shown in your screenshot has both columns marked NOT NULL.
-
-Important: this JavaScript fix does not guarantee that Supabase permissions (RLS) allow inserts. If publication still fails, send the exact new error message. Never put a Supabase service_role/secret key in browser JavaScript.
+Исправление: отправляет текст отзыва одновременно в обязательные поля reviews.content и reviews.text.
+Проверка: синтаксис JavaScript проверен через node --check. Реальную запись в Supabase нужно проверить на сайте.

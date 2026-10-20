@@ -323,7 +323,7 @@ $("#reviewForm").addEventListener("submit",async e=>{
  button.textContent="Сохраняем…";
  try{
   // Public review form writes only the fields used by the reviews table.
-  const payload={name,rating,text:textValue,date:new Date().toISOString().slice(0,10)};
+  const payload={name,rating,content:textValue,text:textValue,date:new Date().toISOString().slice(0,10)};
   const {data,error}=await supabaseClient.from("reviews").insert(payload).select("*").single();
   if(error)throw error;
   if(!data)throw new Error("Supabase не вернул сохранённый отзыв");
