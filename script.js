@@ -432,8 +432,9 @@ $("#orderLookupForm")?.addEventListener("submit",async e=>{
  const result=$("#orderLookupResult"), button=form.querySelector('button[type="submit"]');
  result.hidden=false;result.innerHTML='<p>Проверяем данные заказа…</p>';button.disabled=true;
  try{
-  const {data:order,error}=await supabaseClient.from("orders").select("id,status,created_at,total,phone").eq("id",orderId).eq("phone",phone).maybeSingle();
+  const {data,error}=await supabaseClient.rpc("lookup_order_status",{p_order_id:orderId,p_phone:phone});
   if(error)throw error;
+  const order=Array.isArray(data)?data[0]:data;
   if(!order){result.innerHTML='<strong>Заказ не найден</strong><p>Проверь номер и телефон, указанные при оформлении. Если заказ только что создан, попробуй ещё раз позже.</p>';return}
   const statusLabels={new:"Принят",confirmed:"Подтверждён",shipped:"Отправлен",completed:"Завершён",cancelled:"Отменён"};
   const stages=["new","confirmed","shipped","completed"], active=stages.indexOf(order.status);
