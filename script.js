@@ -224,7 +224,20 @@ function renderNews(){
 function escapeHtml(value){return String(value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
 function openReview(){ $("#reviewModal").classList.add("open");document.body.classList.add("locked")}
 function closeReview(){ $("#reviewModal").classList.remove("open");if(!$("#adminModal").classList.contains("open")&&!$("#checkoutModal").classList.contains("open")&&!$("#productModal").classList.contains("open"))document.body.classList.remove("locked")}
-function openAdmin(){ $("#adminModal").classList.add("open");document.body.classList.add("locked")}
+function openAdmin(){
+ const modal=$("#adminModal");
+ if(!modal){console.error("Admin modal #adminModal not found");return}
+ modal.classList.add("open");
+ document.body.classList.add("locked");
+}
+// Robust delegated handler: also supports header buttons and links added later.
+document.addEventListener("click",e=>{
+ const el=e.target.closest('a[href="#admin"], [data-open-admin], [data-admin-open], #openAdmin, #adminButton, .open-admin, .admin-open');
+ const label=(e.target.closest("a,button")?.textContent||"").trim().toLowerCase();
+ if(!el && !/админ.?панел|admin.?panel/.test(label))return;
+ e.preventDefault();
+ openAdmin();
+},true);
 function closeAdmin(){ $("#adminModal").classList.remove("open");document.body.classList.remove("locked")}
 function adminTabButtons(){ $$(".admin-tab").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===adminTab))}
 async function loadAdminOrders(root){
