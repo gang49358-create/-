@@ -313,17 +313,19 @@ $("#reviewForm").addEventListener("submit",async e=>{
  const form=e.currentTarget;
  const d=new FormData(form);
  const button=form.querySelector('button[type="submit"]');
- const name=String(d.get("reviewName")||"").trim();
- const textValue=String(d.get("reviewText")||"").trim();
- const rating=Math.max(1,Math.min(5,Number(d.get("rating"))||5));
- if(!name||!textValue){showToast("Заполни имя и текст отзыва");return;}
+ const name=String(d.get("reviewName")||d.get("name")||form.querySelector('[name="reviewName"], [name="name"]')?.value||"").trim();
+ // Support all known textarea field names; use the actual textarea value as a final fallback.
+ const textValue=String(d.get("reviewText")||d.get("content")||d.get("text")||form.querySelector('textarea[name="reviewText"], textarea[name="content"], textarea[name="text"], textarea')?.value||"").trim();
+ const rating=Math.max(1,Math.min(5,Number(d.get("rating")||form.querySelector('[name="rating"]')?.value)||5));
+ if(!name||!textValue){showToast("Заполни имя и текст отзыва");console.warn("Review form fields:",{namePresent:Boolean(name),textPresent:Boolean(textValue),formDataKeys:[...d.keys()]});return;}
  if(textValue.length<3){showToast("Напиши отзыв чуть подробнее");return;}
  button.disabled=true;
  const originalLabel=button.textContent;
  button.textContent="Сохраняем…";
  try{
-  // Public review form writes only the fields used by the reviews table.
+  // Both columns are NOT NULL in this database; send the same review text to both.
   const payload={name,rating,content:textValue,text:textValue,date:new Date().toISOString().slice(0,10)};
+  console.info("Submitting review payload:",{...payload});
   const {data,error}=await supabaseClient.from("reviews").insert(payload).select("*").single();
   if(error)throw error;
   if(!data)throw new Error("Supabase не вернул сохранённый отзыв");
