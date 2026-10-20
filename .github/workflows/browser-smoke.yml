@@ -30,8 +30,10 @@ jobs:
           (async () => {
             const browser = await chromium.launch({ headless: true });
             const errors = [];
+            const browserConsoleErrors = [];
             const page = await browser.newPage({ viewport: { width: 1365, height: 900 } });
             page.on('pageerror', error => errors.push('pageerror: ' + error.message));
+            page.on('console', message => { if (message.type() === 'error') browserConsoleErrors.push(message.text()); });
             page.on('response', response => {
               const url = response.url();
               if (url.startsWith('https://gang49358-create.github.io/bazechias/') && response.status() >= 400) {
@@ -66,6 +68,8 @@ jobs:
 
             const swResponse = await page.request.get('https://gang49358-create.github.io/bazechias/service-worker.js');
             assert(swResponse.status() === 200, 'Service worker script should return HTTP 200');
+            const iconResponse = await page.request.get('https://gang49358-create.github.io/bazechias/baze-icon.svg');
+            assert(iconResponse.status() === 200, 'PWA icon should return HTTP 200');
 
             const productCount = await page.locator('#productGrid .product-card').count();
             assert(productCount > 0, 'At least one product card should render');
@@ -110,7 +114,9 @@ jobs:
               favoritesCount,
               manifest: { status: manifestResponse.status(), display: manifest.display, iconCount: manifest.icons?.length || 0 },
               serviceWorkerStatus: swResponse.status(),
+              iconStatus: iconResponse.status(),
               serviceWorkerRegistrations: registrations,
+              browserConsoleErrors,
               mobile,
               orderLookup: orderLookupText,
               errors
