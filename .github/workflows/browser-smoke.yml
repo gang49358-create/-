@@ -41,10 +41,19 @@ jobs:
               }
             });
 
+            const baseUrl = 'https://gang49358-create.github.io/bazechias/';
+            let servedScript = '';
+            for (let attempt = 0; attempt < 18; attempt++) {
+              const scriptResponse = await page.request.get(baseUrl + 'script.js');
+              servedScript = await scriptResponse.text();
+              if (scriptResponse.status() === 200 && servedScript.includes('lookup_order_status')) break;
+              await page.waitForTimeout(5000);
+            }
+            assert(servedScript.includes('lookup_order_status'), 'Wait for the latest storefront script to be published');
             let response;
             for (let attempt = 0; attempt < 8; attempt++) {
               try {
-                response = await page.goto('https://gang49358-create.github.io/bazechias/', {
+                response = await page.goto(baseUrl, {
                   waitUntil: 'domcontentloaded',
                   timeout: 45000
                 });
