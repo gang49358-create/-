@@ -265,15 +265,40 @@ function renderAdmin(){
   $("#adminProductForm").addEventListener("submit",async e=>{e.preventDefault();if(!isAdmin){showToast("Сначала войди как администратор");return}const d=new FormData(e.currentTarget);const category=d.get("category");const product={name:d.get("name").trim(),category,type:category.toUpperCase()+" / CUSTOM",price:Number(d.get("price")),oldPrice:null,label:"NEW",desc:d.get("desc").trim(),image:d.get("image").trim()||"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=85",sizes:[39,40,41,42,43,44,45]};const {error}=await supabaseClient.from("products").insert(productToRow(product));if(error){console.error(error);showToast("Не удалось сохранить товар. Проверь политики Supabase");return}await refreshProductsFromDb();renderAdmin();e.currentTarget.reset();showToast("Товар сохранён в Supabase")});
  }else if(adminTab==="news"){
   root.innerHTML=`<form class="admin-form" id="adminNewsForm"><label>Заголовок<input name="title" required placeholder="Заголовок новости"></label><label>Категория<input name="tag" placeholder="BRAND NOTES" value="BAZE NEWS"></label><label class="wide">Текст<textarea name="text" required minlength="10" rows="3" placeholder="Текст новости"></textarea></label><button class="button button-primary" type="submit">Опубликовать новость +</button></form><div class="admin-list">${newsItems.map(n=>`<div class="admin-list-item"><div class="admin-item-copy"><strong>${escapeHtml(n.title)}</strong><small>${escapeHtml(n.tag||"BAZE NEWS")} · ${escapeHtml(n.date||"")}</small></div><button data-admin-delete-news="${n.id}">Удалить</button></div>`).join("")||'<div class="admin-empty">Опубликованных новостей пока нет.</div>'}</div>`;
-  $("#adminNewsForm").addEventListener("submit",async e=>{
-   e.preventDefault();if(!isAdmin){showToast("Нет прав администратора");return}
-   const form=e.currentTarget;const d=new FormData(form);const button=form.querySelector('button[type="submit"]');button.disabled=true;button.textContent="Публикуем…";
-   const payload={title:String(d.get("title")||"").trim(),tag:String(d.get("tag")||"").trim()||"BAZE NEWS",content:String(d.get("text")||"").trim(),date:new Date().toISOString().slice(0,10),symbol:"B/C"};
-   try{
-    const {data,error}=await supabaseClient.from("news_items").insert(payload).select("*").single();
-    if(error)throw error;
-    newsItems=[mapNewsRow(data),...newsItems.filter(n=>n.id!==data.id)];renderNews();renderAdmin();showToast("Новость опубликована в Supabase");
-   }catch(err){console.error("News publish failed:",err);showToast("Ошибка публикации: "+(err.message||err.details||err.hint||"Неизвестная ошибка"));button.disabled=false;button.textContent="Опубликовать новость +";}
+  $("#adminNewsForm").addEventListener("submit", async e => {
+   e.preventDefault();
+   if (!isAdmin) { showToast("Нет прав администратора"); return; }
+   const form = e.currentTarget;
+   const d = new FormData(form);
+   const button = form.querySelector('button[type="submit"]');
+   const title = String(d.get("title") || "").trim();
+   const content = String(d.get("text") || d.get("content") || "").trim();
+   if (!title) { showToast("Введите заголовок новости"); return; }
+   if (!content) { showToast("Введите текст новости"); return; }
+   const payload = {
+    title,
+    content,
+    tag: String(d.get("tag") || "").trim() || "BAZE NEWS",
+    date: new Date().toISOString().slice(0, 10),
+    symbol: "B/C"
+   };
+   button.disabled = true;
+   button.textContent = "Публикуем…";
+   try {
+    const { data, error } = await supabaseClient.from("news_items").insert(payload).select("*").single();
+    if (error) throw error;
+    newsItems = [mapNewsRow(data), ...newsItems.filter(n => n.id !== data.id)];
+    renderNews();
+    renderAdmin();
+    form.reset();
+    showToast("Новость опубликована в Supabase");
+   } catch (err) {
+    console.error("News publish failed:", err);
+    showToast("Ошибка публикации: " + (err.message || err.details || err.hint || "Неизвестная ошибка"));
+   } finally {
+    button.disabled = false;
+    button.textContent = "Опубликовать новость +";
+   }
   });
  }else{
   root.innerHTML=`<div class="admin-list">${reviews.length?reviews.map(r=>`<div class="admin-list-item"><div class="admin-item-copy"><strong>${escapeHtml(r.name)} · ${"★".repeat(r.rating)}</strong><small>${escapeHtml(r.text)}</small></div><button data-admin-delete-review="${r.id}">Удалить</button></div>`).join(""):`<div class="admin-empty">Отзывы отсутствуют.</div>`}</div><p class="admin-note">Отзывы загружаются из Supabase.</p>`;
