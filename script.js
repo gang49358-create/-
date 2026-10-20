@@ -11,7 +11,6 @@ const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const money = n => new Intl.NumberFormat("ru-RU").format(n) + " ₽";
 
-// Supabase
 const SUPABASE_URL = "https://mpmdhxhhsljllouqrbtr.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_wZfkO7LLjZyX8Z0D7_b4GA_YhLXsdP9";
 const supabaseClient = window.supabase.createClient(
@@ -25,16 +24,16 @@ const fallbackProducts = products.map(p => ({...p, sizes:[...p.sizes]}));
 
 function mapProductRow(row) {
   return {
-    id: Number(row.id),
-    name: row.name,
-    category: row.category,
-    type: row.type || `${String(row.category || "classic").toUpperCase()} / CUSTOM`,
-    price: Number(row.price),
-    oldPrice: row.old_price == null ? null : Number(row.old_price),
-    label: row.label || "NEW",
-    desc: row.description || "",
-    image: row.image || "",
-    sizes: Array.isArray(row.sizes) && row.sizes.length
+    id:Number(row.id),
+    name:row.name,
+    category:row.category,
+    type:row.type || `${String(row.category || "classic").toUpperCase()} / CUSTOM`,
+    price:Number(row.price),
+    oldPrice:row.old_price == null ? null : Number(row.old_price),
+    label:row.label || "NEW",
+    desc:row.description || "",
+    image:row.image || "",
+    sizes:Array.isArray(row.sizes) && row.sizes.length
       ? row.sizes
       : [39,40,41,42,43,44,45]
   };
@@ -42,20 +41,20 @@ function mapProductRow(row) {
 
 function productToRow(p) {
   return {
-    name: p.name,
-    category: p.category,
-    type: p.type,
-    price: p.price,
-    old_price: p.oldPrice || null,
-    label: p.label || "NEW",
-    description: p.desc || "",
-    image: p.image || "",
-    sizes: p.sizes || [39,40,41,42,43,44,45]
+    name:p.name,
+    category:p.category,
+    type:p.type,
+    price:p.price,
+    old_price:p.oldPrice || null,
+    label:p.label || "NEW",
+    description:p.desc || "",
+    image:p.image || "",
+    sizes:p.sizes || [39,40,41,42,43,44,45]
   };
 }
 
 async function refreshProductsFromDb() {
-  const {data, error} = await supabaseClient
+  const {data,error} = await supabaseClient
     .from("products")
     .select("*")
     .order("id", {ascending:true});
@@ -82,11 +81,11 @@ async function refreshProductsFromDb() {
 }
 
 async function verifyAdminSession() {
-  const {data:{user}, error:authError} = await supabaseClient.auth.getUser();
+  const {data:{user},error:authError} = await supabaseClient.auth.getUser();
 
   if (authError || !user) return false;
 
-  const {data, error} = await supabaseClient
+  const {data,error} = await supabaseClient
     .from("admin_users")
     .select("user_id")
     .eq("user_id", user.id)
@@ -101,7 +100,7 @@ async function verifyAdminSession() {
 }
 
 async function seedProductsIfEmpty() {
-  const {data, error} = await supabaseClient
+  const {data,error} = await supabaseClient
     .from("products")
     .select("id")
     .limit(1);
@@ -153,33 +152,26 @@ function renderProducts() {
   const list = visibleProducts();
 
   $("#resultCount").textContent =
-    String(list.length).padStart(2, "0") + " моделей";
+    String(list.length).padStart(2,"0") + " моделей";
 
-  $("#productGrid").innerHTML = list.length
-    ? list.map(p => `
-      <article class="product-card">
-        <div class="product-image" data-view="${p.id}" tabindex="0" role="button" aria-label="Подробнее: ${p.name}">
-          <span class="product-label">${p.label}</span>
-          <button class="favorite ${favorites.includes(p.id) ? "active" : ""}" data-fav="${p.id}" aria-label="Добавить ${p.name} в избранное">
-            ${favorites.includes(p.id) ? "♥" : "♡"}
-          </button>
-          <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.style.opacity='.15'">
+  $("#productGrid").innerHTML = list.length ? list.map(p => `
+    <article class="product-card">
+      <div class="product-image" data-view="${p.id}" tabindex="0" role="button" aria-label="Подробнее: ${p.name}">
+        <span class="product-label">${p.label}</span>
+        <button class="favorite ${favorites.includes(p.id) ? "active" : ""}" data-fav="${p.id}" aria-label="Добавить ${p.name} в избранное">${favorites.includes(p.id) ? "♥" : "♡"}</button>
+        <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.style.opacity='.15'">
+      </div>
+      <div class="product-info">
+        <div class="product-meta"><span>${p.type}</span><span>★ 4.9</span></div>
+        <h3 class="product-name">${p.name}</h3>
+        <p class="product-desc">${p.desc}</p>
+        <div class="product-bottom">
+          <div class="price">${money(p.price)} ${p.oldPrice ? `<span class="old-price">${money(p.oldPrice)}</span>` : ""}</div>
+          <button class="add-btn" data-add="${p.id}" aria-label="Добавить ${p.name} в корзину">+</button>
         </div>
-        <div class="product-info">
-          <div class="product-meta"><span>${p.type}</span><span>★ 4.9</span></div>
-          <h3 class="product-name">${p.name}</h3>
-          <p class="product-desc">${p.desc}</p>
-          <div class="product-bottom">
-            <div class="price">
-              ${money(p.price)}
-              ${p.oldPrice ? `<span class="old-price">${money(p.oldPrice)}</span>` : ""}
-            </div>
-            <button class="add-btn" data-add="${p.id}" aria-label="Добавить ${p.name} в корзину">+</button>
-          </div>
-        </div>
-      </article>
-    `).join("")
-    : `<div class="no-results"><strong>Ничего не найдено</strong>Попробуй изменить поиск или выбрать другую категорию.</div>`;
+      </div>
+    </article>
+  `).join("") : `<div class="no-results"><strong>Ничего не найдено</strong>Попробуй изменить поиск или выбрать другую категорию.</div>`;
 }
 
 function showToast(msg) {
@@ -196,7 +188,7 @@ function addToCart(id, size = 42) {
 
   const found = cart.find(x => x.id === id && x.size === size);
   if (found) found.qty++;
-  else cart.push({id, size, qty:1});
+  else cart.push({id,size,qty:1});
 
   saveCart();
   renderCart();
@@ -228,35 +220,34 @@ function renderCart() {
     const p = products.find(x => x.id === item.id);
     if (!p) return "";
 
-    return `
-      <div class="cart-line">
-        <img src="${p.image}" alt="">
-        <div>
-          <h3>${p.name}</h3>
-          <p>Размер: EU ${item.size}</p>
-          <span class="line-price">${money(p.price)}</span>
-          <div class="qty-control">
-            <button data-qty="${p.id}" data-size="${item.size}" data-delta="-1" aria-label="Уменьшить">−</button>
-            <span>${item.qty}</span>
-            <button data-qty="${p.id}" data-size="${item.size}" data-delta="1" aria-label="Увеличить">+</button>
-          </div>
+    return `<div class="cart-line">
+      <img src="${p.image}" alt="">
+      <div>
+        <h3>${p.name}</h3>
+        <p>Размер: EU ${item.size}</p>
+        <span class="line-price">${money(p.price)}</span>
+        <div class="qty-control">
+          <button data-qty="${p.id}" data-size="${item.size}" data-delta="-1" aria-label="Уменьшить">−</button>
+          <span>${item.qty}</span>
+          <button data-qty="${p.id}" data-size="${item.size}" data-delta="1" aria-label="Увеличить">+</button>
         </div>
-        <button class="remove-item" data-remove="${p.id}" data-size="${item.size}" aria-label="Удалить">×</button>
-      </div>`;
+      </div>
+      <button class="remove-item" data-remove="${p.id}" data-size="${item.size}" aria-label="Удалить">×</button>
+    </div>`;
   }).join("");
 }
 
 function openCart() {
   $("#overlay").classList.add("open");
   $("#cartDrawer").classList.add("open");
-  $("#cartDrawer").setAttribute("aria-hidden", "false");
+  $("#cartDrawer").setAttribute("aria-hidden","false");
   document.body.classList.add("locked");
 }
 
 function closeCart() {
   $("#overlay").classList.remove("open");
   $("#cartDrawer").classList.remove("open");
-  $("#cartDrawer").setAttribute("aria-hidden", "true");
+  $("#cartDrawer").setAttribute("aria-hidden","true");
   document.body.classList.remove("locked");
 }
 
@@ -274,14 +265,9 @@ function openProduct(id) {
         <div class="eyebrow"><span class="eyebrow-line"></span> ${p.type}</div>
         <h2>${p.name}</h2>
         <p>${p.desc} Подходит для повседневного движения и городских маршрутов.</p>
-        <div class="modal-price">
-          ${money(p.price)}
-          ${p.oldPrice ? `<span class="old-price">${money(p.oldPrice)}</span>` : ""}
-        </div>
+        <div class="modal-price">${money(p.price)} ${p.oldPrice ? `<span class="old-price">${money(p.oldPrice)}</span>` : ""}</div>
         <span class="size-label">ВЫБЕРИ РАЗМЕР (EU)</span>
-        <div class="size-options">
-          ${p.sizes.map(s => `<button class="size-option ${s === selectedSize ? "selected" : ""}" data-size-select="${s}">${s}</button>`).join("")}
-        </div>
+        <div class="size-options">${p.sizes.map(s => `<button class="size-option ${s === selectedSize ? "selected" : ""}" data-size-select="${s}">${s}</button>`).join("")}</div>
         <button class="button button-primary modal-add" id="modalAdd">Добавить в корзину <span>↗</span></button>
       </div>
     </div>`;
@@ -292,8 +278,7 @@ function openProduct(id) {
 
 function closeProduct() {
   $("#productModal").classList.remove("open");
-  if (!$("#cartDrawer").classList.contains("open") &&
-      !$("#checkoutModal").classList.contains("open")) {
+  if (!$("#cartDrawer").classList.contains("open") && !$("#checkoutModal").classList.contains("open")) {
     document.body.classList.remove("locked");
   }
 }
@@ -303,7 +288,6 @@ function openCheckout() {
     showToast("Сначала добавь товар в корзину");
     return;
   }
-
   closeCart();
   $("#checkoutModal").classList.add("open");
   document.body.classList.add("locked");
@@ -317,15 +301,11 @@ function closeCheckout() {
 }
 
 function toggleFavorite(id) {
-  favorites = favorites.includes(id)
-    ? favorites.filter(x => x !== id)
-    : [...favorites, id];
-
+  favorites = favorites.includes(id) ? favorites.filter(x => x !== id) : [...favorites,id];
   saveFavorites();
   renderProducts();
   showToast(favorites.includes(id) ? "Добавлено в избранное" : "Удалено из избранного");
-}
-$("#productGrid").addEventListener("click",e=>{
+}$("#productGrid").addEventListener("click",e=>{
  const fav=e.target.closest("[data-fav]");
  if(fav){e.stopPropagation();toggleFavorite(Number(fav.dataset.fav));return}
  const add=e.target.closest("[data-add]");
@@ -373,11 +353,13 @@ $("#continueShopping").addEventListener("click",()=>{
 
 $("#cartItems").addEventListener("click",e=>{
  const qty=e.target.closest("[data-qty]");
+
  if(qty){
   const item=cart.find(x=>
    x.id===Number(qty.dataset.qty)&&
    x.size===Number(qty.dataset.size)
   );
+
   if(item){
    item.qty+=Number(qty.dataset.delta);
    if(item.qty<=0)cart=cart.filter(x=>x!==item);
@@ -388,6 +370,7 @@ $("#cartItems").addEventListener("click",e=>{
  }
 
  const rem=e.target.closest("[data-remove]");
+
  if(rem){
   cart=cart.filter(x=>
    !(x.id===Number(rem.dataset.remove)&&
@@ -406,6 +389,7 @@ $("#productModal").addEventListener("click",e=>{
 
 $("#modalContent").addEventListener("click",e=>{
  const s=e.target.closest("[data-size-select]");
+
  if(s){
   selectedSize=Number(s.dataset.sizeSelect);
   $$(".size-option").forEach(b=>
@@ -447,7 +431,6 @@ $("#checkoutForm").addEventListener("submit",async e=>{
  const form=e.currentTarget;
  const submitButton=form.querySelector('button[type="submit"]');
  const data=new FormData(form);
-
  const items=cart.map(item=>({
   product_id:Number(item.id),
   size:Number(item.size),
@@ -466,8 +449,7 @@ $("#checkoutForm").addEventListener("submit",async e=>{
     p_address:String(data.get("address")||"").trim(),
     p_items:items,
     p_email:String(data.get("email")||"").trim()||null,
-    p_comment:"Способ доставки: "+
-     String(data.get("delivery")||"Курьер")
+    p_comment:"Способ доставки: "+String(data.get("delivery")||"Курьер")
    }
   );
 
@@ -479,7 +461,6 @@ $("#checkoutForm").addEventListener("submit",async e=>{
 
   $("#checkoutForm").hidden=true;
   $("#orderSuccess").hidden=false;
-
   cart=[];
   saveCart();
   renderCart();
@@ -487,7 +468,6 @@ $("#checkoutForm").addEventListener("submit",async e=>{
 
  }catch(err){
   console.error("Order submission failed:",err);
-
   const msg=String(err?.message||"");
 
   if(msg.includes("Product not found")){
@@ -497,7 +477,6 @@ $("#checkoutForm").addEventListener("submit",async e=>{
   }else{
    showToast("Не удалось сохранить заказ. Проверь функцию create_store_order в Supabase.");
   }
-
  }finally{
   submitButton.disabled=false;
   submitButton.innerHTML='Отправить заказ <span>↗</span>';
@@ -517,7 +496,6 @@ $("#newsletterForm").addEventListener("submit",e=>{
  $("#newsletterMessage").textContent=
   "Спасибо! Подписка сохранена только в рамках этой демонстрации.";
  $("#newsletterMessage").style.color="#245bff";
-
  e.currentTarget.reset();
  showToast("Ты в списке Baze China ✳");
 });
@@ -544,69 +522,41 @@ document.addEventListener("keydown",e=>{
 renderProducts();
 renderCart();
 
-// Начальные данные новостей и отзывов
 const defaultReviews=[
- {
-  id:101,
-  name:"Артём",
-  rating:5,
-  text:"Очень стильная подача и удобный интерфейс. Визуально прям то, что нужно для streetwear.",
-  date:"12.10.2026"
- },
- {
-  id:102,
-  name:"Милана",
-  rating:5,
-  text:"Понравились синие акценты и подборка моделей. Хочется увидеть ещё больше новых дропов.",
-  date:"08.10.2026"
- },
- {
-  id:103,
-  name:"Даниил",
-  rating:4,
-  text:"Классная концепция магазина. Особенно понравилась возможность выбрать размер прямо в карточке.",
-  date:"02.10.2026"
- }
+ {id:101,name:"Артём",rating:5,text:"Очень стильная подача и удобный интерфейс. Визуально прям то, что нужно для streetwear.",date:"12.10.2026"},
+ {id:102,name:"Милана",rating:5,text:"Понравились синие акценты и подборка моделей. Хочется увидеть ещё больше новых дропов.",date:"08.10.2026"},
+ {id:103,name:"Даниил",rating:4,text:"Классная концепция магазина. Особенно понравилась возможность выбрать размер прямо в карточке.",date:"02.10.2026"}
 ];
 
 const defaultNews=[
- {
-  id:201,
-  date:"19 OCT 2026",
-  tag:"NEW DROP",
-  title:"Скоро: новая волна синего",
-  text:"Вдохновение ночным городом, электрические оттенки и свежие силуэты. Следи за обновлениями Baze China.",
-  symbol:"DROP 02"
- },
- {
-  id:202,
-  date:"12 OCT 2026",
-  tag:"BRAND NOTES",
-  title:"Почему мы выбираем синий",
-  text:"Синий — это движение, глубина и уверенность. Он стал визуальным кодом нашей концепции streetwear.",
-  symbol:"BLUE"
- },
- {
-  id:203,
-  date:"04 OCT 2026",
-  tag:"COMMUNITY",
-  title:"Твой стиль — твои правила",
-  text:"Baze China задуман как пространство для тех, кто смешивает направления и создаёт собственные правила.",
-  symbol:"MOVE"
- }
+ {id:201,date:"19 OCT 2026",tag:"NEW DROP",title:"Скоро: новая волна синего",text:"Вдохновение ночным городом, электрические оттенки и свежие силуэты. Следи за обновлениями Baze China.",symbol:"DROP 02"},
+ {id:202,date:"12 OCT 2026",tag:"BRAND NOTES",title:"Почему мы выбираем синий",text:"Синий — это движение, глубина и уверенность. Он стал визуальным кодом нашей концепции streetwear.",symbol:"BLUE"},
+ {id:203,date:"04 OCT 2026",tag:"COMMUNITY",title:"Твой стиль — твои правила",text:"Baze China задуман как пространство для тех, кто смешивает направления и создаёт собственные правила.",symbol:"MOVE"}
 ];
 
-// Новости и отзывы загружаются из Supabase
 let reviews=[];
 let newsItems=[];
 let adminTab="products";
 
 function mapNewsRow(row){
+ let displayDate="НОВОСТЬ";
+
+ if(row.date){
+  const rawDate=String(row.date);
+
+  if(/^\d{4}-\d{2}-\d{2}/.test(rawDate)){
+   const [year,month,day]=rawDate.slice(0,10).split("-");
+   displayDate=`${day}.${month}.${year}`;
+  }else{
+   displayDate=rawDate;
+  }
+ }else if(row.created_at){
+  displayDate=new Date(row.created_at).toLocaleDateString("ru-RU");
+ }
+
  return {
   id:row.id,
-  date:row.date||(row.created_at
-   ?new Date(row.created_at).toLocaleDateString("ru-RU")
-   :"НОВОСТЬ"),
+  date:displayDate,
   tag:row.tag||row.category||"BAZE NEWS",
   title:row.title||"",
   text:row.text||row.content||row.body||"",
@@ -704,7 +654,7 @@ function escapeHtml(value){
   '"':"&quot;",
   "'":"&#39;"
  }[ch]));
-}
+ }
 function openReview(){
  $("#reviewModal").classList.add("open");
  document.body.classList.add("locked");
@@ -712,10 +662,10 @@ function openReview(){
 
 function closeReview(){
  $("#reviewModal").classList.remove("open");
- if(!$("#cartDrawer").classList.contains("open")&&
-    !$("#productModal").classList.contains("open")&&
+
+ if(!$("#adminModal").classList.contains("open")&&
     !$("#checkoutModal").classList.contains("open")&&
-    !$("#adminModal").classList.contains("open")){
+    !$("#productModal").classList.contains("open")){
   document.body.classList.remove("locked");
  }
 }
@@ -731,9 +681,9 @@ function closeAdmin(){
 }
 
 function adminTabButtons(){
- $$("#adminDashboard [data-admin-tab]").forEach(btn=>{
-  btn.classList.toggle("active",btn.dataset.adminTab===adminTab);
- });
+ $$(".admin-tab").forEach(b=>
+  b.classList.toggle("active",b.dataset.adminTab===adminTab)
+ );
 }
 
 async function loadAdminOrders(root){
@@ -741,42 +691,64 @@ async function loadAdminOrders(root){
 
  const {data:orders,error}=await supabaseClient
   .from("orders")
-  .select("*")
-  .order("id",{ascending:false});
+  .select("id,customer_name,phone,email,delivery_address,customer_comment,status,total,created_at")
+  .order("created_at",{ascending:false})
+  .limit(100);
 
  if(error){
-  console.error("Orders load failed:",error.message);
-  root.innerHTML='<div class="admin-empty">Не удалось загрузить заказы. Проверь права Supabase.</div>';
+  console.error("Orders read failed:",error);
+  root.innerHTML='<div class="admin-empty">Не удалось загрузить заказы. Проверь RLS и права администратора.</div>';
   return;
  }
 
+ if(!orders.length){
+  root.innerHTML='<div class="admin-empty">Заказов пока нет. Новые заказы появятся здесь.</div>';
+  return;
+ }
+
+ const ids=orders.map(o=>o.id);
+
+ const {data:items,error:itemError}=await supabaseClient
+  .from("order_items")
+  .select("order_id,product_name,size,quantity,unit_price")
+  .in("order_id",ids);
+
+ if(itemError){
+  console.error("Order items read failed:",itemError);
+  root.innerHTML='<div class="admin-empty">Не удалось загрузить состав заказов. Проверь права доступа к order_items.</div>';
+  return;
+ }
+
+ const byOrder={};
+
+ for(const item of items||[]){
+  (byOrder[item.order_id] ||= []).push(item);
+ }
+
  const statuses={
-  pending:"Новый",
+  new:"Новый",
   confirmed:"Подтверждён",
-  processing:"В обработке",
   shipped:"Отправлен",
-  delivered:"Доставлен",
+  completed:"Завершён",
   cancelled:"Отменён"
  };
 
- root.innerHTML=orders.length
-  ?`<div class="admin-list">${orders.map(o=>{
-    const created=o.created_at
-     ?new Date(o.created_at).toLocaleString("ru-RU")
-     :"Дата не указана";
+ root.innerHTML=`
+  <p class="admin-note">Последние ${orders.length} заказ(ов). Оплата на сайте не подключена; уточняй детали и оплату с покупателем отдельно.</p>
+  <div class="admin-list">
+   ${orders.map(o=>{
+    const orderItems=(byOrder[o.id]||[])
+     .map(i=>`${escapeHtml(i.product_name)} · EU ${i.size} × ${i.quantity} (${money(Number(i.unit_price)*i.quantity)})`)
+     .join("<br>");
 
-    const orderItems=Array.isArray(o.items)
-     ?o.items.map(i=>
-       `${escapeHtml(i.name||"Товар")} × ${Number(i.quantity||i.qty||1)} · размер ${escapeHtml(i.size||"—")}`
-      ).join(", ")
-     : "";
+    const created=new Date(o.created_at).toLocaleString("ru-RU");
 
     return `
      <article class="admin-list-item order-admin-item">
       <div class="admin-item-copy">
-       <strong>Заказ №${o.id} · ${money(Number(o.total)||0)}</strong>
-       <small>${escapeHtml(created)} · ${escapeHtml(o.customer_name||"")} · ${escapeHtml(o.phone||"")}</small>
-       <small>${escapeHtml(o.email||"")} · ${escapeHtml(o.delivery_address||"")}</small>
+       <strong>Заказ №${o.id} · ${money(Number(o.total))}</strong>
+       <small>${escapeHtml(created)} · ${escapeHtml(o.customer_name)} · ${escapeHtml(o.phone)}</small>
+       <small>${o.email?escapeHtml(o.email)+" · ":""}${escapeHtml(o.delivery_address)}</small>
        <small>${escapeHtml(o.customer_comment||"")}</small>
        <small>${orderItems||"Состав заказа недоступен"}</small>
        <label class="order-status-label">
@@ -789,8 +761,8 @@ async function loadAdminOrders(root){
        </label>
       </div>
      </article>`;
-   }).join("")}</div>`
-  :'<div class="admin-empty">Заказов пока нет.</div>';
+   }).join("")}
+  </div>`;
 }
 
 function renderAdmin(){
@@ -833,7 +805,7 @@ function renderAdmin(){
       <img src="${p.image}" alt="">
       <div class="admin-item-copy">
        <strong>${escapeHtml(p.name)}</strong>
-       <small>${money(p.price)} · ${escapeHtml(p.category)}</small>
+       <small>${money(p.price)} · ${p.category}</small>
       </div>
       <button data-admin-delete-product="${p.id}">Удалить</button>
      </div>
@@ -854,14 +826,14 @@ function renderAdmin(){
    const category=d.get("category");
 
    const product={
-    name:String(d.get("name")).trim(),
+    name:d.get("name").trim(),
     category,
     type:category.toUpperCase()+" / CUSTOM",
     price:Number(d.get("price")),
     oldPrice:null,
     label:"NEW",
-    desc:String(d.get("desc")).trim(),
-    image:String(d.get("image")).trim()||
+    desc:d.get("desc").trim(),
+    image:d.get("image").trim()||
      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=85",
     sizes:[39,40,41,42,43,44,45]
    };
@@ -871,8 +843,8 @@ function renderAdmin(){
     .insert(productToRow(product));
 
    if(error){
-    console.error("Product insert failed:",error);
-    showToast("Не удалось сохранить товар. Проверь RLS Supabase.");
+    console.error(error);
+    showToast("Не удалось сохранить товар. Проверь политики Supabase");
     return;
    }
 
@@ -891,7 +863,7 @@ function renderAdmin(){
      <input name="title" required placeholder="Заголовок новости">
     </label>
     <label>Категория
-     <input name="tag" value="BAZE NEWS" placeholder="BRAND NOTES">
+     <input name="tag" placeholder="BRAND NOTES" value="BAZE NEWS">
     </label>
     <label class="wide">Текст
      <textarea name="text" required minlength="10" rows="3" placeholder="Текст новости"></textarea>
@@ -908,7 +880,7 @@ function renderAdmin(){
       </div>
       <button data-admin-delete-news="${n.id}">Удалить</button>
      </div>
-    `).join("")||'<div class="admin-empty">Новостей пока нет.</div>'}
+    `).join("")||'<div class="admin-empty">Опубликованных новостей пока нет.</div>'}
    </div>`;
 
   $("#adminNewsForm").addEventListener("submit",async e=>{
@@ -930,7 +902,7 @@ function renderAdmin(){
     title:String(d.get("title")||"").trim(),
     tag:String(d.get("tag")||"").trim()||"BAZE NEWS",
     text:String(d.get("text")||"").trim(),
-    date:new Date().toLocaleDateString("ru-RU"),
+    date:new Date().toISOString().slice(0,10),
     symbol:"B/C"
    };
 
@@ -943,14 +915,23 @@ function renderAdmin(){
 
     if(error)throw error;
 
-    newsItems=[mapNewsRow(data),...newsItems.filter(n=>n.id!==data.id)];
+    newsItems=[
+     mapNewsRow(data),
+     ...newsItems.filter(n=>n.id!==data.id)
+    ];
+
     renderNews();
     renderAdmin();
     showToast("Новость опубликована в Supabase");
 
    }catch(err){
     console.error("News publish failed:",err);
-    showToast("Ошибка публикации: "+(err.message||"проверь колонки и RLS"));
+
+    showToast(
+     "Ошибка публикации: "+
+     (err.message||err.details||err.hint||"Неизвестная ошибка")
+    );
+
     button.disabled=false;
     button.textContent="Опубликовать новость +";
    }
@@ -1060,7 +1041,7 @@ async function loginAdmin(){
   showToast("Вход администратора выполнен");
 
  }catch(err){
-  console.error("Admin login failed:",err);
+  console.error(err);
   showToast(err.message||"Не удалось войти. Проверь данные входа");
  }finally{
   btn.disabled=false;
@@ -1120,6 +1101,7 @@ $("#adminDashboard").addEventListener("click",e=>{
  }
 
  const dp=e.target.closest("[data-admin-delete-product]");
+
  if(dp){
   (async()=>{
    const id=Number(dp.dataset.adminDeleteProduct);
@@ -1144,10 +1126,12 @@ $("#adminDashboard").addEventListener("click",e=>{
    renderAdmin();
    showToast("Товар удалён из Supabase");
   })();
+
   return;
  }
 
  const dn=e.target.closest("[data-admin-delete-news]");
+
  if(dn){
   (async()=>{
    if(!isAdmin){
@@ -1173,10 +1157,12 @@ $("#adminDashboard").addEventListener("click",e=>{
    renderAdmin();
    showToast("Новость удалена из Supabase");
   })();
+
   return;
  }
 
  const dr=e.target.closest("[data-admin-delete-review]");
+
  if(dr){
   (async()=>{
    if(!isAdmin){
