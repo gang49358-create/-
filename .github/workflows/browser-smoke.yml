@@ -82,9 +82,11 @@ jobs:
             await page.locator('#orderLookupForm button[type="submit"]').click();
             await page.waitForFunction(() => {
               const el = document.querySelector('#orderLookupResult');
-              return el && !el.hidden && !el.textContent.includes('Проверяем данные заказа');
-            }, { timeout: 15000 }).catch(() => {});
-            assert(!(await page.locator('#orderLookupResult').evaluate(el => el.hidden)), 'Order lookup should show a result');
+              return el && !el.hidden && el.textContent.trim() && !el.textContent.includes('Проверяем данные заказа');
+            }, { timeout: 15000 });
+            const orderLookupText = (await page.locator('#orderLookupResult').innerText()).trim();
+            assert(orderLookupText.length > 0, 'Order lookup should return a non-empty result');
+            assert(!orderLookupText.includes('Проверяем данные заказа'), 'Order lookup should finish rather than remain loading');
 
             await page.setViewportSize({ width: 390, height: 844 });
             await page.waitForTimeout(500);
@@ -110,7 +112,7 @@ jobs:
               serviceWorkerStatus: swResponse.status(),
               serviceWorkerRegistrations: registrations,
               mobile,
-              orderLookup: 'form submitted and result displayed',
+              orderLookup: orderLookupText,
               errors
             }, null, 2));
             assert.deepEqual(errors, [], 'No page errors or local asset HTTP errors should occur');
