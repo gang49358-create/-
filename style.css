@@ -137,3 +137,51 @@ hr{border-color:var(--line)}
 @media(max-width:760px){body,a,button,input,select,textarea{cursor:auto}.bc-cursor{display:none}.hero{background:radial-gradient(ellipse at 80% 25%,#17284b,#070a12 68%)}.header{backdrop-filter:blur(16px)}.bc-loader-name{letter-spacing:.18em}.bc-loader-orbit{width:82px;height:82px}}
 @media(pointer:coarse){body,a,button,input,select,textarea{cursor:auto}.bc-cursor{display:none}}
 @media(prefers-reduced-motion:reduce){.bc-loader-orbit,.bc-loader-orbit:before,.bc-loader-orbit:after,.bc-loader-track span{animation:none!important}*{scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
+/* BAZE CHINA — interactive brand system */
+.brand-monogram{font-size:14px!important;font-weight:800;letter-spacing:-.1em!important;padding-right:3px;position:relative;isolation:isolate}
+.brand-monogram:after{content:"";position:absolute;inset:2px;border:1px solid #ffffff50;border-radius:inherit;pointer-events:none}
+.brand-mark{border-radius:11px!important}
+.hero{isolation:isolate}
+.hero-copy,.hero-art{animation:bcEnter .9s cubic-bezier(.2,.75,.2,1) both}
+.hero-art{transform-style:preserve-3d;will-change:transform;transition:transform .2s ease-out}
+.hero-sneaker-wrap{filter:drop-shadow(0 30px 55px #0008)}
+.hero-number{font-weight:700;letter-spacing:-.09em;color:#e7edfb;text-shadow:0 0 35px #86aaff22}
+.hero-number .hero-slash{color:#91adf0;margin:0 .08em}
+.hero-number>span:last-child{font-size:9px;letter-spacing:.18em;color:#8b9dbc;font-weight:500}
+.hero-interaction-hint{position:absolute;right:2%;bottom:5%;font-size:9px;letter-spacing:.19em;color:#9daecb;z-index:5;display:flex;gap:12px;align-items:center}
+.hero-interaction-hint span{display:grid;place-items:center;border:1px solid #8eaefb70;border-radius:50%;width:25px;height:25px;color:#cbdcff}
+.product-card{background:linear-gradient(150deg,#111b2c,#080d16)!important;border:1px solid #a7bde51c!important;border-radius:5px;box-shadow:0 18px 40px #0002;transition:transform .4s cubic-bezier(.2,.7,.2,1),border-color .35s,box-shadow .35s}
+.product-card:hover{transform:translateY(-7px);border-color:#a8c4ff55!important;box-shadow:0 25px 55px #0006,0 0 32px #638de512}
+.product-image{height:270px!important;background:radial-gradient(ellipse at 50% 48%,#263958 0%,#111b2b 42%,#090e17 100%)!important}
+.product-image:before{border-color:#8faee52a!important;box-shadow:0 0 0 20px #8faee50a,0 0 0 40px #8faee507!important}
+.product-image img{mix-blend-mode:normal!important;object-fit:cover;transition:transform .65s cubic-bezier(.2,.7,.2,1),filter .45s!important;filter:saturate(.84) contrast(1.03)}
+.product-card:hover .product-image img{transform:scale(1.08) rotate(-3deg)!important;filter:saturate(1.04) contrast(1.05) drop-shadow(0 12px 16px #0006)}
+.product-label{background:#dce6fa!important;color:#0b1220!important;border-radius:2px;letter-spacing:.14em!important}
+.favorite{background:#101a2b!important;color:#d7e3fa!important;border:1px solid #9ebeff30!important;width:36px!important;height:36px!important;transition:transform .2s,background .2s,color .2s}
+.favorite:hover{transform:scale(1.08)}
+.favorite.active{background:#dce6fa!important;color:#0a1020!important;box-shadow:0 0 24px #9ebeff3d}
+.product-info{padding:20px!important}
+.product-meta{color:#91a1bd!important;letter-spacing:.1em}
+.product-name{font-size:20px!important;letter-spacing:-.04em}
+.product-desc{color:#9ba9c1!important;min-height:42px}
+.product-bottom{border-top:1px solid #a7bde51c;padding-top:15px;margin-top:17px}
+.price{color:#edf2ff!important;font-weight:700}
+.old-price{color:#6f7f9c!important}
+.add-btn{background:linear-gradient(145deg,#e3ebfa,#8ea9df)!important;color:#07101e!important;border-radius:3px!important;width:39px!important;height:39px!important;font-size:25px!important;transition:transform .2s,box-shadow .2s}
+.add-btn:hover{transform:rotate(90deg);box-shadow:0 0 24px #8ea9df50}
+.catalog-tools{gap:18px}
+.favorites-filter{border-color:#9ebeff38!important}
+.favorites-filter.active{background:#dce6fa!important;color:#08101f!important}
+.install-app-btn{border:1px solid #9ebeff55;background:linear-gradient(145deg,#14213a,#0c1423);color:#dce7ff;padding:10px 13px;font:600 10px/1.2 'Space Grotesk',sans-serif;letter-spacing:.04em;border-radius:3px;white-space:nowrap}
+.install-app-btn:hover{border-color:#b8ccff;box-shadow:0 0 20px #7198ff20}
+.order-lookup-form{background:linear-gradient(140deg,#101827,#0a0f19)!important;border:1px solid #a7bde525!important;border-radius:6px;padding:24px}
+.order-lookup-result{margin-top:20px;padding:22px;border:1px solid #8eaefb3d;background:#0e1728;border-radius:5px;color:#dbe6fc}
+.order-lookup-result .tracking-status{display:inline-flex;padding:7px 11px;background:#dce6fa;color:#08101e;font-size:11px;letter-spacing:.1em;font-weight:700}
+.order-lookup-result .tracking-steps{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.order-lookup-result .tracking-step{padding:8px 10px;border:1px solid #a7bde525;color:#8292ad;font-size:10px;letter-spacing:.05em}
+.order-lookup-result .tracking-step.is-active{border-color:#9ebeff80;color:#e3ecff;background:#8baafc13}
+@keyframes bcEnter{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:850px){.install-app-btn{padding:9px;font-size:9px}.hero-interaction-hint{display:none}.product-image{height:230px!important}.product-name{font-size:18px!important}}
+@media(max-width:600px){.install-app-btn{display:none!important}.product-grid{gap:12px!important}.product-image{height:190px!important}.product-info{padding:13px!important}.product-name{font-size:16px!important}.product-desc{font-size:11px;min-height:44px}.product-meta{font-size:8px}.add-btn{width:34px!important;height:34px!important}.order-lookup-form{padding:16px}.hero-art{transform:none!important}}
+@media(prefers-reduced-motion:reduce){.hero-copy,.hero-art{animation:none!important}.hero-art{transition:none!important}}
