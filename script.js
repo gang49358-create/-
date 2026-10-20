@@ -383,21 +383,3 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeReview();close
 renderReviews();renderNews();
 loadCommunityContent();
 refreshProductsFromDb();
-
-
-/* BAZE CHINA — loader and signature cursor */
-(()=> {
- const loader=document.getElementById('bcLoader');
- const hideLoader=()=>{if(loader){loader.classList.add('is-hidden');window.setTimeout(()=>loader.remove(),900)}};
- if(document.readyState==='complete') window.setTimeout(hideLoader,650);
- else window.addEventListener('load',()=>window.setTimeout(hideLoader,650),{once:true});
- window.setTimeout(hideLoader,3200);
- const cursor=document.getElementById('bcCursor');
- if(cursor && window.matchMedia('(pointer:fine)').matches){
-   let x=-40,y=-40,tx=-40,ty=-40;
-   document.addEventListener('mousemove',e=>{tx=e.clientX;ty=e.clientY;cursor.style.opacity='1'},{passive:true});
-   const move=()=>{x+=(tx-x)*.22;y+=(ty-y)*.22;cursor.style.left=x+'px';cursor.style.top=y+'px';requestAnimationFrame(move)};
-   cursor.style.opacity='0';move();
-   document.addEventListener('mouseover',e=>{if(e.target.closest('a,button,[role="button"],input,select,textarea,.product-card'))cursor.classList.add('is-hover');else cursor.classList.remove('is-hover')},{passive:true});
- }
-})();
