@@ -308,14 +308,37 @@ $("#writeReview").addEventListener("click",openReview);
 $("#closeReview").addEventListener("click",closeReview);
 $("#reviewModal").addEventListener("click",e=>{if(e.target===$("#reviewModal"))closeReview()});
 $("#reviewForm").addEventListener("submit",async e=>{
- e.preventDefault();const form=e.currentTarget;const d=new FormData(form);const button=form.querySelector('button[type="submit"]');button.disabled=true;
+ e.preventDefault();
+ const form=e.currentTarget;
+ const d=new FormData(form);
+ const button=form.querySelector('button[type="submit"]');
+ const name=String(d.get("reviewName")||"").trim();
+ const textValue=String(d.get("reviewText")||"").trim();
+ const rating=Math.max(1,Math.min(5,Number(d.get("rating"))||5));
+ if(!name||!textValue){showToast("Заполни имя и текст отзыва");return;}
+ if(textValue.length<3){showToast("Напиши отзыв чуть подробнее");return;}
+ button.disabled=true;
+ const originalLabel=button.textContent;
+ button.textContent="Сохраняем…";
  try{
-  const payload={name:String(d.get("reviewName")||"").trim(),rating:Number(d.get("rating")),text:String(d.get("reviewText")||"").trim(),date:new Date().toISOString().slice(0,10)};
+  // Public review form writes only the fields used by the reviews table.
+  const payload={name,rating,text:textValue,date:new Date().toISOString().slice(0,10)};
   const {data,error}=await supabaseClient.from("reviews").insert(payload).select("*").single();
   if(error)throw error;
-  reviews=[mapReviewRow(data),...reviews];renderReviews();form.reset();closeReview();showToast("Спасибо! Отзыв сохранён");
- }catch(err){console.error("Review submit failed:",err);showToast("Не удалось сохранить отзыв: "+(err.message||"проверь RLS"));}
- finally{button.disabled=false;}
+  if(!data)throw new Error("Supabase не вернул сохранённый отзыв");
+  reviews=[mapReviewRow(data),...reviews.filter(r=>String(r.id)!==String(data.id))];
+  renderReviews();
+  form.reset();
+  closeReview();
+  showToast("Спасибо! Отзыв сохранён в базе данных");
+ }catch(err){
+  console.error("Review submit failed:",err);
+  const detail=err.message||err.details||err.hint||"Неизвестная ошибка";
+  showToast("Не удалось сохранить отзыв: "+detail);
+ }finally{
+  button.disabled=false;
+  button.textContent=originalLabel;
+ }
 });
 $("#closeAdmin").addEventListener("click",closeAdmin);
 $("#adminModal").addEventListener("click",e=>{if(e.target===$("#adminModal"))closeAdmin()});
