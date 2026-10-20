@@ -278,6 +278,7 @@ function renderAdmin(){
    const payload = {
     title,
     content,
+    text: content,
     tag: String(d.get("tag") || "").trim() || "BAZE NEWS",
     date: new Date().toISOString().slice(0, 10),
     symbol: "B/C"

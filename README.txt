@@ -1,9 +1,10 @@
-BAZE CHINA — обновлённый script.js
+BAZE CHINA — SCRIPT.JS
 
-1. Распакуйте архив.
-2. Замените содержимое script.js в репозитории GitHub этим файлом.
-3. Commit changes и дождитесь обновления GitHub Pages.
-4. Откройте сайт и выполните Ctrl+F5.
+1. Open the repository: https://github.com/gang49358-create/bazechias
+2. Open script.js and replace its contents with the included script.js.
+3. Commit changes and wait for GitHub Pages to deploy.
+4. Reload the site with Ctrl+F5.
 
-В обработчике публикации новости добавлена проверка title/content, чтение текста из полей text или content и гарантированное восстановление кнопки после ответа Supabase.
-Если Supabase по-прежнему сообщает `null value in column "content"`, проверьте фактическую схему таблицы news_items и убедитесь, что опубликованный сайт загружает именно этот файл.
+This version includes the existing shop/admin/review code and sends BOTH `content` and `text` when publishing news, because the Supabase news_items table shown in your screenshot has both columns marked NOT NULL.
+
+Important: this JavaScript fix does not guarantee that Supabase permissions (RLS) allow inserts. If publication still fails, send the exact new error message. Never put a Supabase service_role/secret key in browser JavaScript.
