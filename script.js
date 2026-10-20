@@ -268,7 +268,7 @@ function renderAdmin(){
   $("#adminNewsForm").addEventListener("submit",async e=>{
    e.preventDefault();if(!isAdmin){showToast("Нет прав администратора");return}
    const form=e.currentTarget;const d=new FormData(form);const button=form.querySelector('button[type="submit"]');button.disabled=true;button.textContent="Публикуем…";
-   const payload={title:String(d.get("title")||"").trim(),tag:String(d.get("tag")||"").trim()||"BAZE NEWS",text:String(d.get("text")||"").trim(),date:new Date().toISOString().slice(0,10),symbol:"B/C"};
+   const payload={title:String(d.get("title")||"").trim(),tag:String(d.get("tag")||"").trim()||"BAZE NEWS",content:String(d.get("text")||"").trim(),date:new Date().toISOString().slice(0,10),symbol:"B/C"};
    try{
     const {data,error}=await supabaseClient.from("news_items").insert(payload).select("*").single();
     if(error)throw error;
