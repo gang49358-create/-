@@ -344,3 +344,14 @@ select{border-radius:2px}
 .product-3d-viewer.dragging .product-3d-stage{transition:none}
 @media(max-width:700px){.product-3d-viewer,.product-3d-stage,.product-3d-stage img{min-height:240px}.viewer-hint{font-size:8px}.modal-product-image.product-3d-viewer{height:260px}}
 @media(prefers-reduced-motion:reduce){.product-3d-stage{transition:none}}
+
+
+/* Global button color override: all site controls use black with white text */
+button,.button,a.button,input[type="button"],input[type="submit"],input[type="reset"],.email-row button,.favorite,.filter,.size-option,.admin-tab,.qty-control button,.viewer-reset,.close-btn,.modal-close,.icon-btn,.cart-button {
+  background:#000 !important;background-image:none !important;color:#fff !important;border-color:#000 !important;box-shadow:none;
+}
+button:hover,.button:hover,a.button:hover,input[type="button"]:hover,input[type="submit"]:hover,input[type="reset"]:hover,.email-row button:hover,.favorite:hover,.filter:hover,.size-option:hover,.admin-tab:hover,.qty-control button:hover,.viewer-reset:hover,.close-btn:hover,.modal-close:hover,.icon-btn:hover,.cart-button:hover {
+  background:#171717 !important;background-image:none !important;color:#fff !important;border-color:#171717 !important;
+}
+.filter.active,.size-option.selected,.admin-tab.active,.favorite.active {background:#000 !important;color:#fff !important;border-color:#000 !important}
+button:disabled,.button:disabled,input[type="submit"]:disabled {background:#222 !important;color:#aaa !important;border-color:#222 !important;opacity:.7}
