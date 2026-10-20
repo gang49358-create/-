@@ -175,31 +175,32 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeCart();closePr
 renderProducts();renderCart();
 
 
-// Demo content for community, editorial news and browser-only admin panel.
-const defaultReviews=[
- {id:101,name:"Артём",rating:5,text:"Очень стильная подача и удобный интерфейс. Визуально прям то, что нужно для streetwear.",date:"12.10.2026"},
- {id:102,name:"Милана",rating:5,text:"Понравились синие акценты и подборка моделей. Хочется увидеть ещё больше новых дропов.",date:"08.10.2026"},
- {id:103,name:"Даниил",rating:4,text:"Классная концепция магазина. Особенно понравилась возможность выбрать размер прямо в карточке.",date:"02.10.2026"}
-];
-const defaultNews=[
- {id:201,date:"19 OCT 2026",tag:"NEW DROP",title:"Скоро: новая волна синего",text:"Вдохновение ночным городом, электрические оттенки и свежие силуэты. Следи за обновлениями Baze China.",symbol:"DROP 02"},
- {id:202,date:"12 OCT 2026",tag:"BRAND NOTES",title:"Почему мы выбираем синий",text:"Синий — это движение, глубина и уверенность. Он стал визуальным кодом нашей концепции streetwear.",symbol:"BLUE"},
- {id:203,date:"04 OCT 2026",tag:"COMMUNITY",title:"Твой стиль — твои правила",text:"Baze China задуман как пространство для тех, кто смешивает направления и создаёт собственные правила.",symbol:"MOVE"}
-];
-let reviews=JSON.parse(localStorage.getItem("bazeReviews")||"null")||defaultReviews;
-let newsItems=JSON.parse(localStorage.getItem("bazeNews")||"null")||defaultNews;
+// Community content is stored in Supabase (not localStorage).
+let reviews=[];
+let newsItems=[];
 let adminTab="products";
-function saveReviews(){localStorage.setItem("bazeReviews",JSON.stringify(reviews))}
-function saveNews(){localStorage.setItem("bazeNews",JSON.stringify(newsItems))}
+let contentLoadError="";
+function mapReviewRow(r){return {id:Number(r.id),name:String(r.name||"Гость"),rating:Number(r.rating)||5,text:String(r.text||""),date:r.date||new Date(r.created_at||Date.now()).toLocaleDateString("ru-RU")}}
+function mapNewsRow(n){return {id:Number(n.id),date:n.date||new Date(n.created_at||Date.now()).toLocaleDateString("ru-RU"),tag:n.tag||"BAZE NEWS",title:String(n.title||""),text:String(n.text||""),symbol:n.symbol||"B/C"}}
+async function refreshReviewsFromDb(){
+ const {data,error}=await supabaseClient.from("reviews").select("id,name,rating,text,date,created_at").order("created_at",{ascending:false}).limit(100);
+ if(error){contentLoadError=error.message;console.error("Supabase reviews read failed:",error);return false}
+ reviews=(data||[]).map(mapReviewRow);contentLoadError="";renderReviews();return true;
+}
+async function refreshNewsFromDb(){
+ const {data,error}=await supabaseClient.from("news_items").select("id,date,tag,title,text,symbol,created_at").order("created_at",{ascending:false}).limit(100);
+ if(error){contentLoadError=error.message;console.error("Supabase news read failed:",error);return false}
+ newsItems=(data||[]).map(mapNewsRow);contentLoadError="";renderNews();return true;
+}
 function renderReviews(){
  const sorted=[...reviews].sort((a,b)=>b.id-a.id);
- $("#reviewGrid").innerHTML=sorted.length?sorted.map(r=>`<article class="review-card"><div class="review-top"><span class="review-avatar">${escapeHtml(r.name.slice(0,1).toUpperCase())}</span><span class="review-name">${escapeHtml(r.name)}</span><span class="stars">${"★".repeat(r.rating)}${"☆".repeat(5-r.rating)}</span></div><p>${escapeHtml(r.text)}</p><span class="review-date">${escapeHtml(r.date||"СЕГОДНЯ")}</span></article>`).join(""):`<div class="admin-empty">Пока нет отзывов. Стань первым!</div>`;
- const avg=reviews.length?reviews.reduce((s,r)=>s+r.rating,0)/reviews.length:0;
+ $("#reviewGrid").innerHTML=sorted.length?sorted.map(r=>`<article class="review-card"><div class="review-top"><span class="review-avatar">${escapeHtml(r.name.slice(0,1).toUpperCase())}</span><span class="review-name">${escapeHtml(r.name)}</span><span class="stars">${"★".repeat(r.rating)}${"☆".repeat(5-r.rating)}</span></div><p>${escapeHtml(r.text)}</p><span class="review-date">${escapeHtml(r.date||"СЕГОДНЯ")}</span></article>`).join(""):`<div class="admin-empty">${contentLoadError?"Не удалось загрузить отзывы из базы. Попробуй обновить страницу.":"Пока нет отзывов. Стань первым!"}</div>`;
+ const avg=reviews.length?reviews.reduce((sum,r)=>sum+r.rating,0)/reviews.length:0;
  $(".review-score").innerHTML=`${avg.toFixed(1)}<span>/5</span>`;
- $(".review-summary small").textContent=`${reviews.length} отзыв(ов) · демо-данные хранятся в этом браузере`;
+ $(".review-summary small").textContent=`${reviews.length} отзыв(ов) · данные Supabase`;
 }
 function renderNews(){
- $("#newsGrid").innerHTML=newsItems.length?newsItems.map(n=>`<article class="news-card"><div class="news-image"><span>${escapeHtml(n.symbol||"B/C")}</span></div><div class="news-body"><div class="news-meta">${escapeHtml(n.tag||"BAZE NEWS")} · ${escapeHtml(n.date||"НОВОСТЬ")}</div><h3>${escapeHtml(n.title)}</h3><p>${escapeHtml(n.text)}</p><button class="news-read" data-news-read="${n.id}">Читать заметку ↗</button></div></article>`).join(""):`<div class="admin-empty">Новостей пока нет.</div>`;
+ $("#newsGrid").innerHTML=newsItems.length?newsItems.map(n=>`<article class="news-card"><div class="news-image"><span>${escapeHtml(n.symbol||"B/C")}</span></div><div class="news-body"><div class="news-meta">${escapeHtml(n.tag||"BAZE NEWS")} · ${escapeHtml(n.date||"НОВОСТЬ")}</div><h3>${escapeHtml(n.title)}</h3><p>${escapeHtml(n.text)}</p><button class="news-read" data-news-read="${n.id}">Читать заметку ↗</button></div></article>`).join(""):`<div class="admin-empty">${contentLoadError?"Не удалось загрузить новости из базы. Попробуй обновить страницу.":"Новостей пока нет."}</div>`;
 }
 function escapeHtml(value){return String(value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
 function openReview(){ $("#reviewModal").classList.add("open");document.body.classList.add("locked")}
@@ -228,19 +229,25 @@ function renderAdmin(){
  if(adminTab==="orders"){
   loadAdminOrders(root);
  }else if(adminTab==="products"){
-  root.innerHTML=`<form class="admin-form" id="adminProductForm"><label>Название<input name="name" required placeholder="Название модели"></label><label>Цена, ₽<input name="price" type="number" min="1" required placeholder="7990"></label><label>Категория<select name="category"><option value="running">Running</option><option value="street">Streetwear</option><option value="classic">Classic</option></select></label><label>URL фото<input name="image" type="url" placeholder="https://..."></label><label class="wide">Описание<textarea name="desc" rows="2" required placeholder="Коротко о модели"></textarea></label><button class="button button-primary" type="submit">Добавить товар +</button></form><div class="admin-list">${products.map(p=>`<div class="admin-list-item"><img src="${p.image}" alt=""><div class="admin-item-copy"><strong>${escapeHtml(p.name)}</strong><small>${money(p.price)} · ${p.category}</small></div><button data-admin-delete-product="${p.id}">Удалить</button></div>`).join("")}</div><p class="admin-note">Товары сохраняются в Supabase. Новости и отзывы пока остаются в демо-режиме этого браузера.</p>`;
+  root.innerHTML=`<form class="admin-form" id="adminProductForm"><label>Название<input name="name" required placeholder="Название модели"></label><label>Цена, ₽<input name="price" type="number" min="1" required placeholder="7990"></label><label>Категория<select name="category"><option value="running">Running</option><option value="street">Streetwear</option><option value="classic">Classic</option></select></label><label>URL фото<input name="image" type="url" placeholder="https://..."></label><label class="wide">Описание<textarea name="desc" rows="2" required placeholder="Коротко о модели"></textarea></label><button class="button button-primary" type="submit">Добавить товар +</button></form><div class="admin-list">${products.map(p=>`<div class="admin-list-item"><img src="${p.image}" alt=""><div class="admin-item-copy"><strong>${escapeHtml(p.name)}</strong><small>${money(p.price)} · ${p.category}</small></div><button data-admin-delete-product="${p.id}">Удалить</button></div>`).join("")}</div><p class="admin-note">Товары сохраняются в Supabase. Новости и отзывы хранятся в Supabase.</p>`;
   $("#adminProductForm").addEventListener("submit",async e=>{e.preventDefault();if(!isAdmin){showToast("Сначала войди как администратор");return}const d=new FormData(e.currentTarget);const category=d.get("category");const product={name:d.get("name").trim(),category,type:category.toUpperCase()+" / CUSTOM",price:Number(d.get("price")),oldPrice:null,label:"NEW",desc:d.get("desc").trim(),image:d.get("image").trim()||"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=85",sizes:[39,40,41,42,43,44,45]};const {error}=await supabaseClient.from("products").insert(productToRow(product));if(error){console.error(error);showToast("Не удалось сохранить товар. Проверь политики Supabase");return}await refreshProductsFromDb();renderAdmin();e.currentTarget.reset();showToast("Товар сохранён в Supabase")});
  }else if(adminTab==="news"){
-  root.innerHTML=`<form class="admin-form" id="adminNewsForm"><label>Заголовок<input name="title" required placeholder="Заголовок новости"></label><label>Категория<input name="tag" placeholder="BRAND NOTES" value="BAZE NEWS"></label><label class="wide">Текст<textarea name="text" required minlength="10" rows="3" placeholder="Текст новости"></textarea></label><button class="button button-primary" type="submit">Опубликовать новость +</button></form><div class="admin-list">${newsItems.map(n=>`<div class="admin-list-item"><div class="admin-item-copy"><strong>${escapeHtml(n.title)}</strong><small>${escapeHtml(n.tag||"BAZE NEWS")} · ${escapeHtml(n.date||"")}</small></div><button data-admin-delete-news="${n.id}">Удалить</button></div>`).join("")}</div>`;
-  $("#adminNewsForm").addEventListener("submit",e=>{e.preventDefault();const d=new FormData(e.currentTarget);newsItems.unshift({id:Date.now(),date:new Date().toLocaleDateString("ru-RU"),tag:d.get("tag").trim()||"BAZE NEWS",title:d.get("title").trim(),text:d.get("text").trim(),symbol:"B/C"});saveNews();renderNews();renderAdmin();showToast("Новость опубликована")});
+  root.innerHTML='<div class="admin-empty">Загружаем новости из Supabase…</div>';
+  (async()=>{
+   await refreshNewsFromDb();
+   if(!isAdmin)return;
+   root.innerHTML=`<form class="admin-form" id="adminNewsForm"><label>Заголовок<input name="title" required maxlength="160" placeholder="Заголовок новости"></label><label>Категория<input name="tag" maxlength="60" placeholder="BRAND NOTES" value="BAZE NEWS"></label><label class="wide">Текст<textarea name="text" required minlength="10" maxlength="10000" rows="3" placeholder="Текст новости"></textarea></label><button class="button button-primary" type="submit">Опубликовать новость +</button></form><div class="admin-list">${newsItems.map(n=>`<div class="admin-list-item"><div class="admin-item-copy"><strong>${escapeHtml(n.title)}</strong><small>${escapeHtml(n.tag||"BAZE NEWS")} · ${escapeHtml(n.date||"")}</small></div><button data-admin-delete-news="${n.id}">Удалить</button></div>`).join("")||'<div class="admin-empty">Новостей пока нет.</div>'}</div><p class="admin-note">Новости сохраняются в Supabase и видны всем посетителям.</p>`;
+   $("#adminNewsForm").addEventListener("submit",async e=>{e.preventDefault();if(!isAdmin){showToast("Нет прав администратора");return}const form=e.currentTarget;const d=new FormData(form);const button=form.querySelector('button[type="submit"]');button.disabled=true;const payload={date:new Date().toLocaleDateString("ru-RU"),tag:String(d.get("tag")||"").trim()||"BAZE NEWS",title:String(d.get("title")||"").trim(),text:String(d.get("text")||"").trim(),symbol:"B/C"};const {error}=await supabaseClient.from("news_items").insert(payload);button.disabled=false;if(error){console.error("News insert failed:",error);showToast("Не удалось сохранить новость. Проверь SQL и права администратора.");return}await refreshNewsFromDb();renderAdmin();showToast("Новость опубликована в Supabase")});
+  })();
  }else{
-  root.innerHTML=`<div class="admin-list">${reviews.length?reviews.map(r=>`<div class="admin-list-item"><div class="admin-item-copy"><strong>${escapeHtml(r.name)} · ${"★".repeat(r.rating)}</strong><small>${escapeHtml(r.text)}</small></div><button data-admin-delete-review="${r.id}">Удалить</button></div>`).join(""):`<div class="admin-empty">Отзывы отсутствуют.</div>`}</div><p class="admin-note">Отзывы — демонстрационные. Удаление влияет только на данные этого браузера.</p>`;
+  root.innerHTML='<div class="admin-empty">Загружаем отзывы из Supabase…</div>';
+  (async()=>{await refreshReviewsFromDb();if(!isAdmin)return;root.innerHTML=`<div class="admin-list">${reviews.length?reviews.map(r=>`<div class="admin-list-item"><div class="admin-item-copy"><strong>${escapeHtml(r.name)} · ${"★".repeat(r.rating)}</strong><small>${escapeHtml(r.text)}</small><small>${escapeHtml(r.date||"")}</small></div><button data-admin-delete-review="${r.id}">Удалить</button></div>`).join(""):`<div class="admin-empty">Отзывы отсутствуют.</div>`}</div><p class="admin-note">Отзывы посетителей хранятся в Supabase. Удалять отзывы может только администратор.</p>`})();
  }
 }
 $("#writeReview").addEventListener("click",openReview);
 $("#closeReview").addEventListener("click",closeReview);
 $("#reviewModal").addEventListener("click",e=>{if(e.target===$("#reviewModal"))closeReview()});
-$("#reviewForm").addEventListener("submit",e=>{e.preventDefault();const d=new FormData(e.currentTarget);reviews.unshift({id:Date.now(),name:d.get("reviewName").trim(),rating:Number(d.get("rating")),text:d.get("reviewText").trim(),date:new Date().toLocaleDateString("ru-RU")});saveReviews();renderReviews();e.currentTarget.reset();closeReview();showToast("Спасибо! Отзыв добавлен")});
+$("#reviewForm").addEventListener("submit",async e=>{e.preventDefault();const form=e.currentTarget;const d=new FormData(form);const button=form.querySelector('button[type="submit"]');button.disabled=true;button.textContent="Отправляем отзыв…";const payload={name:String(d.get("reviewName")||"").trim(),rating:Number(d.get("rating")),text:String(d.get("reviewText")||"").trim(),date:new Date().toLocaleDateString("ru-RU")};try{const {error}=await supabaseClient.from("reviews").insert(payload);if(error)throw error;await refreshReviewsFromDb();form.reset();closeReview();showToast("Спасибо! Отзыв сохранён в базе")}catch(err){console.error("Review insert failed:",err);showToast("Не удалось сохранить отзыв. Проверь SQL и подключение к Supabase.")}finally{button.disabled=false;button.innerHTML='Опубликовать отзыв <span>↗</span>'}});
 $("#closeAdmin").addEventListener("click",closeAdmin);
 $("#adminModal").addEventListener("click",e=>{if(e.target===$("#adminModal"))closeAdmin()});
 async function loginAdmin(){
@@ -272,11 +279,13 @@ $("#adminDashboard").addEventListener("change",async e=>{
 $("#adminDashboard").addEventListener("click",e=>{
  const tab=e.target.closest("[data-admin-tab]");if(tab){adminTab=tab.dataset.adminTab;renderAdmin();return}
  const dp=e.target.closest("[data-admin-delete-product]");if(dp){(async()=>{const id=Number(dp.dataset.adminDeleteProduct);if(!isAdmin){showToast("Нет прав администратора");return}const {error}=await supabaseClient.from("products").delete().eq("id",id);if(error){console.error(error);showToast("Не удалось удалить товар");return}await refreshProductsFromDb();renderAdmin();showToast("Товар удалён из Supabase")})();return}
- const dn=e.target.closest("[data-admin-delete-news]");if(dn){newsItems=newsItems.filter(n=>n.id!==Number(dn.dataset.adminDeleteNews));saveNews();renderNews();renderAdmin();showToast("Новость удалена");return}
- const dr=e.target.closest("[data-admin-delete-review]");if(dr){reviews=reviews.filter(r=>r.id!==Number(dr.dataset.adminDeleteReview));saveReviews();renderReviews();renderAdmin();showToast("Отзыв удалён")}
+ const dn=e.target.closest("[data-admin-delete-news]");if(dn){(async()=>{if(!isAdmin){showToast("Нет прав администратора");return}const {error}=await supabaseClient.from("news_items").delete().eq("id",Number(dn.dataset.adminDeleteNews));if(error){console.error("News delete failed:",error);showToast("Не удалось удалить новость");return}await refreshNewsFromDb();renderAdmin();showToast("Новость удалена из Supabase")})();return}
+ const dr=e.target.closest("[data-admin-delete-review]");if(dr){(async()=>{if(!isAdmin){showToast("Нет прав администратора");return}const {error}=await supabaseClient.from("reviews").delete().eq("id",Number(dr.dataset.adminDeleteReview));if(error){console.error("Review delete failed:",error);showToast("Не удалось удалить отзыв");return}await refreshReviewsFromDb();renderAdmin();showToast("Отзыв удалён из Supabase")})()}
 });
 $("#newsGrid").addEventListener("click",e=>{const b=e.target.closest("[data-news-read]");if(!b)return;const n=newsItems.find(x=>x.id===Number(b.dataset.newsRead));if(n)showToast(n.title+" — "+n.text)});
 const oldEscapeHandler = null;
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeReview();closeAdmin()}});
 renderReviews();renderNews();
+refreshReviewsFromDb();
+refreshNewsFromDb();
 refreshProductsFromDb();
