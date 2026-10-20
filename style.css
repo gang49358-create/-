@@ -23,3 +23,45 @@
 
 /* Customer order tracking and Telegram checkout */
 .order-tracking{background:#f7f9fd}.order-lookup-form{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;margin-top:28px}.order-lookup-form label{display:grid;gap:8px;font-size:10px;font-weight:800;color:#4c5b75}.order-lookup-form input{width:100%;min-width:0;padding:13px;border:1px solid #dce3ef;background:white;font-size:12px;color:var(--ink)}.order-lookup-result{margin-top:18px;padding:18px;border:1px solid #dce5f2;background:white;font-size:12px;line-height:1.8;overflow-wrap:anywhere}.order-lookup-result strong,.order-lookup-result .tracking-status{display:block}.order-lookup-result .tracking-status{font-weight:800;color:#245bff;margin:4px 0}.order-lookup-result p{color:#64728b;margin:8px 0}.order-lookup-result small{color:#7d899e}.order-lookup-result a{color:#245bff;font-weight:800}.order-lookup-result.is-error{border-color:#f1c8c8;color:#9d3434}.order-lookup-result.is-loading{color:#687792}.telegram-intro{margin-top:18px!important}.telegram-actions{display:grid;gap:9px;margin:15px 0}.telegram-actions .button{width:100%;text-decoration:none;justify-content:center}.telegram-note{display:block;color:#8d98aa;font-size:9px;line-height:1.7;margin:0 0 16px}.order-success #finishOrder{margin-top:8px}@media(max-width:680px){.order-lookup-form{grid-template-columns:1fr}.order-lookup-form .button{width:100%}}
+
+
+/* Animated Adidas Jeremy Scott Wings hero treatment */
+.hero-sneaker-wrap {
+  animation: sneakerFloat 6s ease-in-out infinite, sneakerReveal .95s cubic-bezier(.2,.75,.25,1) both;
+  transform-style: preserve-3d;
+}
+.hero-sneaker-wrap::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 12% 8%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 28% 55%, rgba(255,44,92,.28), transparent 48%),
+              radial-gradient(ellipse at 72% 45%, rgba(50,112,255,.42), transparent 55%);
+  filter: blur(28px);
+  opacity: .8;
+  animation: wingsGlow 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+.hero-sneaker {
+  position: relative;
+  animation: wingsImageGlow 4.5s ease-in-out infinite;
+  will-change: filter, opacity;
+}
+@keyframes sneakerReveal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes wingsGlow {
+  0%, 100% { opacity: .55; transform: scale(.94); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+@keyframes wingsImageGlow {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(55,117,255,.16)); }
+  50% { filter: drop-shadow(0 0 20px rgba(55,117,255,.38)) drop-shadow(0 0 9px rgba(255,54,94,.15)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-sneaker-wrap, .hero-sneaker-wrap::before, .hero-sneaker, .hero-ring, .orb-one {
+    animation: none !important;
+  }
+}

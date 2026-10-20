@@ -19,3 +19,45 @@
 
 /* Order management */
 .order-admin-item{align-items:flex-start}.order-admin-item .admin-item-copy{display:grid;gap:7px}.order-admin-item small{display:block;line-height:1.6;overflow-wrap:anywhere}.order-status-label{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:800;margin-top:5px}.order-status-label select{border:1px solid #dce3ef;background:#fbfcfe;padding:8px;font:inherit;border-radius:4px;max-width:100%}.admin-tabs{flex-wrap:wrap}
+
+
+/* Animated Adidas Jeremy Scott Wings hero treatment */
+.hero-sneaker-wrap {
+  animation: sneakerFloat 6s ease-in-out infinite, sneakerReveal .95s cubic-bezier(.2,.75,.25,1) both;
+  transform-style: preserve-3d;
+}
+.hero-sneaker-wrap::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 12% 8%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 28% 55%, rgba(255,44,92,.28), transparent 48%),
+              radial-gradient(ellipse at 72% 45%, rgba(50,112,255,.42), transparent 55%);
+  filter: blur(28px);
+  opacity: .8;
+  animation: wingsGlow 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+.hero-sneaker {
+  position: relative;
+  animation: wingsImageGlow 4.5s ease-in-out infinite;
+  will-change: filter, opacity;
+}
+@keyframes sneakerReveal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes wingsGlow {
+  0%, 100% { opacity: .55; transform: scale(.94); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+@keyframes wingsImageGlow {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(55,117,255,.16)); }
+  50% { filter: drop-shadow(0 0 20px rgba(55,117,255,.38)) drop-shadow(0 0 9px rgba(255,54,94,.15)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-sneaker-wrap, .hero-sneaker-wrap::before, .hero-sneaker, .hero-ring, .orb-one {
+    animation: none !important;
+  }
+}
