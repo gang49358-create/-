@@ -1,0 +1,119 @@
+name: Browser smoke test
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Test published site on desktop and mobile
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          const assert = require('node:assert/strict');
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const errors = [];
+            const page = await browser.newPage({ viewport: { width: 1365, height: 900 } });
+            page.on('pageerror', error => errors.push('pageerror: ' + error.message));
+            page.on('response', response => {
+              const url = response.url();
+              if (url.startsWith('https://gang49358-create.github.io/bazechias/') && response.status() >= 400) {
+                errors.push('HTTP ' + response.status() + ': ' + url);
+              }
+            });
+
+            let response;
+            for (let attempt = 0; attempt < 8; attempt++) {
+              try {
+                response = await page.goto('https://gang49358-create.github.io/bazechias/', {
+                  waitUntil: 'domcontentloaded',
+                  timeout: 45000
+                });
+                if (response && response.status() === 200) break;
+              } catch (error) {
+                if (attempt === 7) throw error;
+              }
+              await page.waitForTimeout(10000);
+            }
+            assert(response && response.status() === 200, 'Published homepage should return HTTP 200');
+            await page.waitForTimeout(5000);
+            assert((await page.title()).includes('Baze China'), 'Page title should load');
+            assert(await page.locator('#productGrid').count() === 1, 'Product grid should exist');
+            assert(await page.locator('#orderLookupForm').count() === 1, 'Order tracking form should exist');
+            assert(await page.locator('#favoritesFilter').count() === 1, 'Favorites filter should exist');
+
+            const manifestResponse = await page.request.get('https://gang49358-create.github.io/bazechias/manifest.webmanifest');
+            assert(manifestResponse.status() === 200, 'Web app manifest should return HTTP 200');
+            const manifest = await manifestResponse.json();
+            assert(manifest.display === 'standalone', 'Manifest should declare standalone display');
+
+            const swResponse = await page.request.get('https://gang49358-create.github.io/bazechias/service-worker.js');
+            assert(swResponse.status() === 200, 'Service worker script should return HTTP 200');
+
+            const productCount = await page.locator('#productGrid .product-card').count();
+            assert(productCount > 0, 'At least one product card should render');
+            await page.locator('#productGrid .favorite').first().click();
+            await page.waitForTimeout(250);
+            const favoritesCount = await page.locator('#favoritesCount').innerText();
+            assert(Number(favoritesCount) > 0, 'Favorite action should update the count');
+            await page.locator('#favoritesFilter').click();
+            assert(await page.locator('#productGrid .product-card').count() > 0, 'Favorites filter should show the saved item');
+            await page.locator('#favoritesFilter').click();
+
+            await page.locator('#orderLookupForm input[name="orderId"]').fill('987654321');
+            await page.locator('#orderLookupForm input[name="phone"]').fill('+70000000000');
+            await page.locator('#orderLookupForm button[type="submit"]').click();
+            await page.waitForFunction(() => {
+              const el = document.querySelector('#orderLookupResult');
+              return el && !el.hidden && !el.textContent.includes('Проверяем данные заказа');
+            }, { timeout: 15000 }).catch(() => {});
+            assert(!(await page.locator('#orderLookupResult').evaluate(el => el.hidden)), 'Order lookup should show a result');
+
+            await page.setViewportSize({ width: 390, height: 844 });
+            await page.waitForTimeout(500);
+            const mobile = await page.evaluate(() => ({
+              viewport: window.innerWidth,
+              document: document.documentElement.scrollWidth
+            }));
+            assert(mobile.document <= mobile.viewport + 1, 'Mobile layout should not overflow horizontally: ' + JSON.stringify(mobile));
+
+            const registrations = await page.evaluate(async () => {
+              if (!('serviceWorker' in navigator)) return [];
+              return (await navigator.serviceWorker.getRegistrations()).map(reg => ({
+                scope: reg.scope,
+                active: Boolean(reg.active)
+              }));
+            });
+            console.log(JSON.stringify({
+              homepageStatus: response.status(),
+              title: await page.title(),
+              productCount,
+              favoritesCount,
+              manifest: { status: manifestResponse.status(), display: manifest.display, iconCount: manifest.icons?.length || 0 },
+              serviceWorkerStatus: swResponse.status(),
+              serviceWorkerRegistrations: registrations,
+              mobile,
+              orderLookup: 'form submitted and result displayed',
+              errors
+            }, null, 2));
+            assert.deepEqual(errors, [], 'No page errors or local asset HTTP errors should occur');
+            await browser.close();
+          })().catch(error => { console.error(error); process.exit(1); });
+          NODE
